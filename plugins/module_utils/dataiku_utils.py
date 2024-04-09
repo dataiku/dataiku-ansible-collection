@@ -53,14 +53,17 @@ def discover_install_dir_python(data_dir):
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
-    install_dir = (
-        discover_install_dir_python(args.connect_to.get("data_dir"))
-        if args.connect_to is not None
-        else None
-    )
+    data_dir = os.environ.get("DATAIKU_ANSIBLE_DATA_DIR", None)
+    if args.connect_to is not None:
+        data_dir = args.connect_to.get("data_dir")
+    elif args.data_dir is not None:
+        data_dir = args.data_dir
+
+    install_dir = discover_install_dir_python(data_dir)
+
     if install_dir is None:
         module.fail_json(
-            msg=f"Failed to discover install_dir with the provided data_dir \'{args.connect_to.get('data_dir')}\' information."
+            msg=f"Failed to discover install_dir with the provided data_dir \'{install_dir}\' information."
         )
 
     sys.path.append(install_dir)
@@ -70,7 +73,7 @@ def add_dataikuapi_to_path(module):
 def add_dss_connection_args(module_args):
     module_args.update(
         {
-            "connect_to": dict(type="dict", required=True, no_log=True),
+            "connect_to": dict(type="dict", required=False, no_log=True),
             "host": dict(type="str", required=False, default="127.0.0.1"),
             "port": dict(type="str", required=False, default=None),
             "api_key": dict(type="str", required=False, default=None, no_log=True),

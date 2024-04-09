@@ -17,7 +17,7 @@ options:
         type: dict
         description:
             - A dictionary containing "port" and "api_key". This parameter is a short hand to be used with dss_get_credentials
-        required: true
+        required: false
     host:
         type: str
         description:

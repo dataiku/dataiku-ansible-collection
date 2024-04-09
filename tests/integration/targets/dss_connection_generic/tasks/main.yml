@@ -40,9 +40,6 @@
         readableBy: ALLOWED
   register: hdfs_connection
 
-- debug:
-    var: hdfs_connection
-
 - assert:
     that:
       - hdfs_connection is changed

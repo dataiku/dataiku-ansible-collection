@@ -1,0 +1,90 @@
+---
+################################
+# Prerequisites
+################################
+- name: Create DSS credentials
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test
+  register: dss_connection_info
+
+################################
+# Install DSS plugin
+################################
+- name: Install plugin from the store
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: geocoder
+  register: dss_plugin
+
+- assert:
+    that:
+      - dss_plugin is changed
+      - dss_plugin.message == "CREATED"
+      - dss_plugin.dss_plugin is defined
+      - dss_plugin.job_results is defined
+      - dss_plugin.job_results | length > 0
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: geocoder
+  register: dss_plugin_idem
+
+- assert:
+    that:
+      - dss_plugin_idem is not changed
+      - dss_plugin_idem.message == "UNCHANGED"
+      - dss_plugin_idem.dss_plugin is defined
+      - dss_plugin_idem.dss_plugin == dss_plugin.dss_plugin
+      - dss_plugin_idem.job_results is defined
+      - dss_plugin_idem.job_results | length == 0
+
+################################
+# Update DSS plugin
+################################
+- name: Update plugin installation
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: geocoder
+    settings:
+      config:
+        forward_cache_size: 100
+        reverse_cache_size: 100
+  register: dss_plugin_update
+
+- assert:
+    that:
+      - dss_plugin_update is changed
+      - dss_plugin_update.message == "MODIFIED"
+      - dss_plugin_update.dss_plugin is defined
+      - dss_plugin_update.dss_plugin != dss_plugin.dss_plugin
+      - dss_plugin_update.job_results is defined
+      - dss_plugin_update.job_results | length == 0
+
+################################
+# Uninstall DSS plugin
+################################
+- name: Uninstall plugin
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: absent
+    plugin_id: geocoder
+  register: dss_plugin_delete
+
+- assert:
+    that:
+      - dss_plugin_delete is changed
+      - dss_plugin_delete.message == "DELETED"
+      - dss_plugin_delete.dss_plugin is defined
+      - dss_plugin_delete.dss_plugin == dss_plugin_update.dss_plugin
+      - dss_plugin_delete.job_results is defined
+      - dss_plugin_delete.job_results | length > 0

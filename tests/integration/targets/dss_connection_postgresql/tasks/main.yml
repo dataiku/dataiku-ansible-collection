@@ -1,0 +1,99 @@
+---
+################################
+# Prerequisites
+################################
+- name: Create DSS credentials
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test
+  register: dss_connection_info
+
+################################
+# DSS postgresql connection Creation
+################################
+- name: Create a postgresql connection
+  dataiku.dss.dss_connection_postgresql:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    name: ansible-collection-test
+    postgresql_host: localhost
+    postgresql_port: "5432"
+    user: ansible
+    password: P@ssW0rd
+    database: ansible
+  register: pg_connection
+
+- assert:
+    that:
+      - pg_connection is changed
+      - pg_connection.message == "CREATED"
+      - pg_connection.connection_def is defined
+      - pg_connection.previous_connection_def is not defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_connection_postgresql:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    name: ansible-collection-test
+    postgresql_host: localhost
+    postgresql_port: "5432"
+    user: ansible
+    password: P@ssW0rd
+    database: ansible
+  register: pg_connection_idem
+
+- assert:
+    that:
+      - pg_connection_idem is not changed
+      - pg_connection_idem.message == "UNCHANGED"
+      - pg_connection_idem.connection_def is defined
+      # TODO: this test cannot succeed as the creation does not return a connection with the default values
+      # - pg_connection_idem.connection_def | ansible.utils.remove_keys(target=['password']) == pg_connection.connection_def | ansible.utils.remove_keys(target=['password'])
+      - pg_connection_idem.previous_connection_def is defined
+
+################################
+# DSS postgresql connection Update
+################################
+- name: Update a postgresql connection
+  dataiku.dss.dss_connection_postgresql:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    name: ansible-collection-test
+    postgresql_host: 127.0.0.1
+    postgresql_port: "5433"
+    user: anZible
+    password: P@ssW0rd
+    database: anZible
+  register: pg_connection_update
+
+- assert:
+    that:
+      - pg_connection_update is changed
+      - pg_connection_update.message == "MODIFIED"
+      - pg_connection_update.connection_def is defined
+      - pg_connection_update.connection_def != pg_connection.connection_def
+      - pg_connection_update.previous_connection_def is defined
+      - pg_connection_update.previous_connection_def | ansible.utils.remove_keys(target=['password']) == pg_connection_idem.connection_def | ansible.utils.remove_keys(target=['password'])
+
+################################
+# DSS postgresql connection Deletion
+################################
+- name: Update a postgresql connection
+  dataiku.dss.dss_connection_postgresql:
+    connect_to: "{{ dss_connection_info }}"
+    state: absent
+    name: ansible-collection-test
+  register: pg_connection_delete
+
+- assert:
+    that:
+      - pg_connection_delete is changed
+      - pg_connection_delete.message == "DELETED"
+      - pg_connection_delete.connection_def is not defined
+      - pg_connection_delete.previous_connection_def is defined
+      - pg_connection_delete.previous_connection_def | ansible.utils.remove_keys(target=['password']) == pg_connection_update.connection_def | ansible.utils.remove_keys(target=['password'])

@@ -1,0 +1,93 @@
+---
+################################
+# Prerequisites
+################################
+- name: Create DSS credentials
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test
+  register: dss_connection_info
+
+################################
+# DSS user Creation
+################################
+- name: Create a dss user
+  dataiku.dss.dss_user:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    login: ansible-collection-test
+    password: P@ssW0rd
+    display_name: Ansible Collection
+    groups: [ data_team ]
+  register: dss_user
+
+- assert:
+    that:
+      - dss_user is changed
+      - dss_user.message == "CREATED"
+      - dss_user.user_def is defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_user:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    login: ansible-collection-test
+    password: P@ssW0rd
+    display_name: Ansible Collection
+    groups: [ data_team ]
+  register: dss_user_idem
+
+- assert:
+    that:
+      - dss_user_idem is not changed
+      - dss_user_idem.message == "UNCHANGED"
+      - dss_user_idem.user_def is defined
+      - dss_user_idem.previous_user_def is defined
+      # TODO: this test cannot succeed as the creation does not return a connection with the default values
+      # - dss_user_idem.user_def == dss_user.user_def
+      # - dss_user_idem.previous_user_def == dss_user.user_def
+
+################################
+# DSS group Update
+################################
+- name: Update a dss user
+  dataiku.dss.dss_user:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    login: ansible-collection-test
+    password: P@ssW0rd
+    display_name: AnZible Collection
+    groups: [ administrators ]
+  register: dss_user_update
+
+- assert:
+    that:
+      - dss_user_update is changed
+      - dss_user_update.message == "MODIFIED"
+      - dss_user_update.user_def is defined
+      - dss_user_update.user_def != dss_user_idem.user_def
+      - dss_user_update.previous_user_def is defined
+      - dss_user_update.previous_user_def == dss_user_idem.user_def
+
+################################
+# DSS group Deletion
+################################
+- name: Delete a dss user
+  dataiku.dss.dss_user:
+    connect_to: "{{ dss_connection_info }}"
+    state: absent
+    login: ansible-collection-test
+  register: dss_user_delete
+
+- assert:
+    that:
+      - dss_user_delete is changed
+      - dss_user_delete.message == "DELETED"
+      - dss_user_delete.user_def is not defined
+      - dss_user_delete.previous_user_def is defined
+      - dss_user_delete.previous_user_def == dss_user_update.user_def

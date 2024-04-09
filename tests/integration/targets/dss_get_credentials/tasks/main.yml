@@ -1,0 +1,36 @@
+---
+################################
+# DSS credentials creation
+################################
+- name: Create DSS credentials
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test-credentials
+  register: dss_connection_info
+
+- assert:
+    that:
+      - dss_connection_info is changed
+      - dss_connection_info.port is defined
+      - dss_connection_info.api_key is defined
+      - dss_connection_info.data_dir == dss_data_dir
+
+################################
+# Module idempotence
+################################
+- name: Check module idempotence
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test-credentials
+  register: dss_connection_info_idem
+
+- assert:
+    that:
+      - dss_connection_info_idem is not changed
+      - dss_connection_info_idem.port == dss_connection_info.port
+      - dss_connection_info_idem.api_key == dss_connection_info.api_key
+      - dss_connection_info_idem.data_dir == dss_data_dir

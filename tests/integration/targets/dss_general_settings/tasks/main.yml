@@ -1,0 +1,117 @@
+---
+################################
+# Prerequisites
+################################
+- name: Create DSS credentials
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test
+  register: dss_connection_info
+
+################################
+# DSS General settings Creation
+################################
+- name: Setup LDAP connectivity
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    silent_update_secrets: true
+    settings:
+      ldapSettings:
+        enabled: true
+        url: ldap://ldap.internal.example.com/dc=example,dc=com
+        bindDN: uid=readonly,ou=users,dc=example,dc=com
+        bindPassword: theserviceaccountpassword
+        useTls: false
+        autoImportUsers: true
+        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
+        defaultUserProfile: READER
+        displayNameAttribute: gecos
+        emailAttribute: mail
+        enableGroups: true
+        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
+        groupNameAttribute: cn
+        groupProfiles: [ ]
+        # Note: LDAP setting test cannot have authorized groups as the type changed in version 12.6.0 from
+        # a string of coma-separated group names to a list of group names
+        # authorizedGroups:
+        #   - dss-users
+  register: general_settings
+
+- assert:
+    that:
+      - general_settings is changed
+      - general_settings.message == "MODIFIED"
+      - general_settings.dss_general_settings is defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    silent_update_secrets: true
+    settings:
+      ldapSettings:
+        enabled: true
+        url: ldap://ldap.internal.example.com/dc=example,dc=com
+        bindDN: uid=readonly,ou=users,dc=example,dc=com
+        bindPassword: theserviceaccountpassword
+        useTls: false
+        autoImportUsers: true
+        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
+        defaultUserProfile: READER
+        displayNameAttribute: gecos
+        emailAttribute: mail
+        enableGroups: true
+        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
+        groupNameAttribute: cn
+        groupProfiles: [ ]
+        # authorizedGroups:
+        #   - dss-users
+  register: general_settings_idem
+
+- assert:
+    that:
+      - general_settings_idem is not changed
+      - general_settings_idem.message == "UNCHANGED"
+      - general_settings_idem.dss_general_settings is defined
+      - general_settings_idem.dss_general_settings == general_settings.dss_general_settings
+      - general_settings_idem.previous_settings is defined
+
+################################
+# DSS General settings Update
+################################
+- name: Update LDAP connectivity
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    silent_update_secrets: true
+    settings:
+      ldapSettings:
+        enabled: true
+        url: ldap://ldap.example.com/dc=example,dc=com
+        bindDN: uid=readonly,ou=users,dc=example,dc=com
+        bindPassword: anothertheserviceaccountpassword
+        useTls: true
+        autoImportUsers: true
+        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
+        defaultUserProfile: READER
+        displayNameAttribute: gecos
+        emailAttribute: mail
+        enableGroups: true
+        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
+        groupNameAttribute: cn
+        groupProfiles: [ ]
+        # authorizedGroups:
+        #   - dss-users
+  register: general_settings_update
+
+- assert:
+    that:
+      - general_settings_update is changed
+      - general_settings_update.message == "MODIFIED"
+      - general_settings_update.dss_general_settings is defined
+      - general_settings_update.dss_general_settings | ansible.utils.remove_keys(target=['bindPassword']) != general_settings.dss_general_settings | ansible.utils.remove_keys(target=['bindPassword'])
+      - general_settings_update.previous_settings is defined
+      - general_settings_update.previous_settings | ansible.utils.remove_keys(target=['bindPassword']) == general_settings_idem.previous_settings | ansible.utils.remove_keys(target=['bindPassword'])

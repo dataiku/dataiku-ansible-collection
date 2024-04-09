@@ -1,0 +1,18 @@
+---
+################################
+# DSS System facts collection
+################################
+- name: Get DSS system info
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_system_facts:
+    datadir: "{{ dss_data_dir }}"
+  register: dss_system_info
+
+- assert:
+    that:
+      - dss_system_info is not changed
+      - dss_system_info.install_ini is defined
+      - dss_system_info.raw_install_ini is defined
+      - dss_system_info.install_ini.server.port == "{{ dss_default_port }}"
+      - dss_system_info.install_ini.general.nodetype == "design"

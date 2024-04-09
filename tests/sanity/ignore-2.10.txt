@@ -1,0 +1,80 @@
+tests/unit/plugins/module_utils/test_dataiku_utils.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/module_utils/dataiku_utils.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_api_deployer_infra.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_code_env.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_connection_generic.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_connection_postgresql.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_general_settings.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_get_credentials.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_group.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_plugin.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_system_facts.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_user.py future-import-boilerplate!skip # Ignore python 2 compatibility
+tests/unit/plugins/module_utils/test_dataiku_utils.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/module_utils/dataiku_utils.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_api_deployer_infra.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_code_env.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_connection_generic.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_connection_postgresql.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_general_settings.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_get_credentials.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_group.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_plugin.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_system_facts.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_user.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/modules/dss_api_deployer_infra.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_code_env.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_connection_generic.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_connection_postgresql.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_general_settings.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_get_credentials.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_group.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_plugin.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_system_facts.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_user.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/modules/dss_api_deployer_infra.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_code_env.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_connection_generic.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_connection_postgresql.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_general_settings.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_get_credentials.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_group.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_plugin.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_system_facts.py validate-modules:invalid-documentation # ignore author format check
+plugins/modules/dss_user.py validate-modules:invalid-documentation # ignore author format check
+plugins/module_utils/dataiku_utils.py pylint:use-dict-literal
+plugins/modules/dss_api_deployer_infra.py pylint:use-dict-literal
+plugins/modules/dss_code_env.py pylint:use-dict-literal
+plugins/modules/dss_connection_generic.py pylint:use-dict-literal
+plugins/modules/dss_connection_postgresql.py pylint:use-dict-literal
+plugins/modules/dss_general_settings.py pylint:use-dict-literal
+plugins/modules/dss_get_credentials.py pylint:use-dict-literal
+plugins/modules/dss_group.py pylint:use-dict-literal
+plugins/modules/dss_plugin.py pylint:use-dict-literal
+plugins/modules/dss_system_facts.py pylint:use-dict-literal
+plugins/modules/dss_user.py pylint:use-dict-literal
+plugins/modules/dss_api_deployer_infra.py pylint:consider-using-f-string
+plugins/modules/dss_code_env.py pylint:consider-using-f-string
+plugins/modules/dss_connection_generic.py pylint:consider-using-f-string
+plugins/modules/dss_connection_postgresql.py pylint:consider-using-f-string
+plugins/modules/dss_general_settings.py pylint:consider-using-f-string
+plugins/modules/dss_get_credentials.py pylint:consider-using-f-string
+plugins/modules/dss_group.py pylint:consider-using-f-string
+plugins/modules/dss_plugin.py pylint:consider-using-f-string
+plugins/modules/dss_system_facts.py pylint:consider-using-f-string
+plugins/modules/dss_user.py pylint:consider-using-f-string
+plugins/modules/dss_api_deployer_infra.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_code_env.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_connection_generic.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_connection_postgresql.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_general_settings.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_get_credentials.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_group.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_plugin.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_system_facts.py pylint:ansible-format-automatic-specification
+plugins/modules/dss_user.py pylint:ansible-format-automatic-specification
+plugins/module_utils/dataiku_utils.py pylint:import-outside-toplevel # allow dynamic imports
+plugins/modules/dss_connection_generic.py pylint:import-outside-toplevel # allow dynamic imports
+plugins/modules/dss_connection_postgresql.py pylint:import-outside-toplevel # allow dynamic imports
+plugins/modules/dss_group.py pylint:import-outside-toplevel # allow dynamic imports
+plugins/modules/dss_user.py pylint:import-outside-toplevel # allow dynamic imports

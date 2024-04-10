@@ -53,11 +53,11 @@ def discover_install_dir_python(data_dir):
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
-    data_dir = os.environ.get("DATAIKU_ANSIBLE_DATA_DIR", None)
-    if args.connect_to is not None:
-        data_dir = args.connect_to.get("data_dir")
-    elif args.data_dir is not None:
-        data_dir = args.data_dir
+    data_dir = (
+        args.data_dir
+        if args.data_dir is not None
+        else args.connect_to.get("data_dir", os.environ.get("DATAIKU_ANSIBLE_DSS_DATADIR", "/data/dataiku/dss_data"))
+    )
 
     install_dir = discover_install_dir_python(data_dir)
 
@@ -100,7 +100,11 @@ def get_client_from_parsed_args(module):
         if args.port is not None
         else args.connect_to.get("port", os.environ.get("DATAIKU_ANSIBLE_DSS_PORT", "80"))
     )
-    host = args.host
+    host = (
+        args.host
+        if args.host is not None
+        else args.connect_to.get("host", os.environ.get("DATAIKU_ANSIBLE_DSS_HOST", "127.0.0.1"))
+    )
 
     client = DSSClient(f"http://{args.host}:{port}", api_key=api_key)
 

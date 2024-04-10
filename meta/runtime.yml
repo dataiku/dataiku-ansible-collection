@@ -1,0 +1,14 @@
+---
+requires_ansible: '>=2.10.7'
+action_groups:
+  dss:
+    - dss_api_deployer_infra
+    - dss_code_env
+    - dss_connection_generic
+    - dss_connection_postgresql
+    - dss_general_settings
+    - dss_get_credentials
+    - dss_group
+    - dss_plugin
+    - dss_system_facts
+    - dss_user

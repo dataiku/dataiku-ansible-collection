@@ -1,0 +1,24 @@
+---
+- name: Check that DSS datadir exists
+  become: true
+  become_user: dataiku
+  stat:
+    path: "{{ dss_data_dir }}"
+  register: dss_data_dir_state
+
+- assert:
+    that:
+      - dss_data_dir_state.stat.exists
+    fail_msg: "DSS is not installed or is not present in the right directory '{{ dss_data_dir }}'"
+
+- name: Check that DSS is started
+  become: true
+  become_user: dataiku
+  shell: "{{ dss_data_dir }}/bin/dss status | grep backend | awk '{print $2}'"
+  changed_when: false
+  register: dss_status
+
+- assert:
+    that:
+      - dss_status.stdout == 'RUNNING'
+    fail_msg: "DSS is not started"

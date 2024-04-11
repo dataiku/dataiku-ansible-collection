@@ -1,0 +1,6 @@
+---
+telegraf_version: "1.29.5"
+telegraf_conf_content:
+telegraf_conf_dss_datadir:
+telegraf_conf_dss_id:
+telegraph_hostname:

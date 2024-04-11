@@ -1,0 +1,82 @@
+---
+- name: Create download dir
+  become: true
+  file:
+    path: /opt/telegraf
+    state: directory
+    mode: 0755
+
+- name: Install telegraf for ReadHat or AlmaLinux
+  include_tasks: "install_telegraf_rpm.yml"
+  when: ansible_os_family == 'RedHat'
+
+- name: Install telegraf for Debian, Ubuntu
+  include_tasks: "install_telegraf_deb.yml"
+  when: ansible_os_family == 'Debian'
+
+- name: Check if docker is installed
+  become: true
+  command: command -v docker
+  register: docker_installed
+  ignore_errors: true
+  changed_when: false
+
+- name: Allow telegraf to docker
+  become: true
+  user:
+    name: telegraf
+    groups: [docker]
+    append: true
+  notify: restart telegraf
+  when: docker_installed.rc == 0
+
+- name: Create telegraf systemd drop-in directory
+  become: true
+  file:
+    path: /etc/systemd/system/telegraf.service.d
+    state: directory
+    mode: 0755
+
+- name: Create telegraf systemd drop-in
+  become: true
+  copy:
+    dest: /etc/systemd/system/telegraf.service.d/override.conf
+    content: |
+      [Service]
+      CapabilityBoundingSet = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
+      AmbientCapabilities = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
+      NoNewPrivileges = true
+  notify:
+  - daemon reload
+  - restart telegraf
+
+- name: Create default telegraf configuration drop-in
+  become: true
+  template:
+    src: "telegraf.conf"
+    dest: /etc/telegraf/telegraf.d/dss.conf
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart telegraf
+  when: telegraf_conf_content is none
+
+- name: Create custom telegraf configuration drop-in
+  become: true
+  copy:
+    content: "{{ telegraf_conf_content }}"
+    dest: /etc/telegraf/telegraf.d/dss.conf
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart telegraf
+  when: telegraf_conf_content is not none
+
+- meta: flush_handlers
+
+- name: Enable telegraf service
+  become: true
+  systemd:
+    name: telegraf
+    enabled: true
+    state: started

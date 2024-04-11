@@ -52,25 +52,14 @@
 
 - name: Create default telegraf configuration drop-in
   become: true
-  template:
-    src: "telegraf.conf"
-    dest: /etc/telegraf/telegraf.d/dss.conf
-    mode: 0644
-    owner: root
-    group: root
-  notify: restart telegraf
-  when: telegraf_conf_content is none
-
-- name: Create custom telegraf configuration drop-in
-  become: true
   copy:
-    content: "{{ telegraf_conf_content }}"
-    dest: /etc/telegraf/telegraf.d/dss.conf
+    content: "{{ item.value }}"
+    dest: "/etc/telegraf/telegraf.d/dss-{{ item.key }}.conf"
     mode: 0644
     owner: root
     group: root
   notify: restart telegraf
-  when: telegraf_conf_content is not none
+  loop: "{{ telegraf_internal_confs }}"
 
 - meta: flush_handlers
 

@@ -1,0 +1,10 @@
+---
+telegraf_internal_confs:
+  - key: core
+    value: "{{ telegraf_conf_core_content }}"
+  - key: inputs
+    value: "{{ telegraf_conf_inputs_content }}"
+  - key: outputs
+    value: "{{ telegraf_conf_outputs_content }}"
+  - key: additional
+    value: "{{ telegraf_conf_additional_content }}"

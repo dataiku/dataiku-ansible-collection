@@ -1,6 +1,86 @@
 ---
-telegraf_version: "1.29.5"
-telegraf_conf_content:
+telegraf_version: "1.30.1"
 telegraf_conf_dss_datadir:
 telegraf_conf_dss_id:
 telegraph_hostname:
+telegraf_conf_core_content: |
+  [agent]
+    interval = "10s"
+    round_interval = true
+    metric_batch_size = 1000
+    metric_buffer_limit = 10000
+    collection_jitter = "0s"
+    flush_interval = "10s"
+    flush_jitter = "0s"
+    precision = "0s"
+    hostname = "{{ telegraph_hostname | default(hostname) }}"
+    omit_hostname = false
+telegraf_conf_inputs_content: |
+  [[inputs.cpu]]
+    percpu = true
+    totalcpu = true
+    collect_cpu_time = false
+    report_active = false
+  [[inputs.mem]]
+  [[inputs.swap]]
+  [[inputs.kernel]]
+  [[inputs.processes]]
+  [[inputs.system]]
+  [[inputs.chrony]]
+  [[inputs.net]]
+  [[inputs.netstat]]
+  [[inputs.cgroup]]
+  [[inputs.disk]]
+    ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "squashfs"]
+  [[inputs.diskio]]
+  [[inputs.net_response]]
+    protocol = "tcp"
+    address = "localhost:22"
+  {% if docker_installed.rc == 0 %}
+  [[inputs.docker]]
+  {% endif %}
+  [[inputs.procstat]]
+    interval = "20s"
+    pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
+    pid_tag = true
+    [inputs.procstat.tags]
+      dss_id="{{ telegraf_conf_dss_id }}"
+      dimension="dss-backend"
+  [[inputs.procstat]]
+    interval = "20s"
+    pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
+    pid_tag = true
+    [inputs.procstat.tags]
+      dss_id="{{ telegraf_conf_dss_id }}"
+      dimension="dss-fek"
+  [[inputs.procstat]]
+    interval = "20s"
+    pattern = "Ddku\\.jek.*-cp {{ telegraf_conf_dss_datadir }}"
+    pid_tag = true
+    [inputs.procstat.tags]
+      dss_id="{{ telegraf_conf_dss_id }}"
+      dimension="dss-jek"
+  [[inputs.socket_listener]]
+    service_address = "tcp://127.0.0.1:9109"
+    data_format = "graphite"
+    templates = [
+      "dss.*.server.jvm.threads.*.count                     measurement.dss_id.measurement.measurement.measurement.dimension.field",
+      "dss.*.server.jvm.memory.pools.*.*                    measurement.dss_id.measurement.measurement.measurement.field.pool.dimension",
+      "dss.*.server.jvm.memory.*.*                          measurement.dss_id.measurement.measurement.field.memory.dimension",
+      "dss.*.server.jvm.memory.total.*                      measurement.dss_id.measurement.measurement.measurement.field.dimension",
+      "dss.*.server.dku.jobs.activities.*                   measurement.dss_id.measurement.measurement.measurement.field.activity_state dimension=count",
+      "dss.*.server.dku.jobs.*.*                            measurement.dss_id.measurement.measurement.field.job_state.dimension",
+      "dss.*.server.dku.objectsCounts.global.*              measurement.dss_id.measurement.measurement.measurement.field.kind dimension=count",
+      "dss.*.server.dku.ml.predictionTrain.*.*              measurement.dss_id.measurement.measurement.measurement.field.kind.dimension",
+      "dss.*.server.dku.notifications.queue.*.size.*        measurement.dss_id.measurement.measurement.measurement.measurement.queue.size.dimension",
+      "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
+      "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
+      "dss.*.server.dku.api.internal.calltime.*.*.*         measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_call.dimension",
+      "dss.*.server.dku.api.internal.calltime.*.*.*.*       measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dimension",
+      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*     measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dimension",
+      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*.*   measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dss_api_subcall1.dimension",
+      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*.*.* measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dss_api_subcall1.dss_api_subcall2.dimension"
+    ]
+telegraf_conf_outputs_content: |
+  [[outputs.prometheus_client]]
+telegraf_conf_additional_content: ""

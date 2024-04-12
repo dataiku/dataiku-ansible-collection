@@ -1,0 +1,28 @@
+---
+- name: Add telegraf repository key
+  become: true
+  apt_key:
+    url: https://repos.influxdata.com/influxdata-archive_compat.key
+    keyring: /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg
+    state: present
+
+- name: Add telegraf repository
+  become: true
+  # force signing key due to https://github.com/influxdata/telegraf/issues/12542
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/{{ ansible_distribution | lower }} stable main"
+    state: present
+    filename: telegraf
+  register: repo_telegraf
+
+- name: Update cache
+  become: true
+  apt:
+    update_cache: yes
+  when: repo_telegraf.changed
+
+- name: Install telegraf
+  become: true
+  apt:
+    name: telegraf
+    state: present

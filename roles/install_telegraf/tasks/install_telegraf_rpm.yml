@@ -1,0 +1,27 @@
+---
+- name: Add telegraf repository key
+  become: true
+  rpm_key:
+    state: present
+    key: https://repos.influxdata.com/influxdata-archive_compat.key
+
+- name: Add telegraf repository
+  become: true
+  yum_repository:
+    state: present
+    name: influxdb
+    description: InfluxDB Repository - RHEL $releasever
+    baseurl: https://repos.influxdata.com/rhel/$releasever/$basearch/stable
+  register: telegraf_repo
+
+- name: Update yum cache
+  become: true
+  yum:
+    update_cache: yes
+  when: telegraf_repo.changed
+
+- name: Install telegraf
+  become: true
+  yum:
+    name: telegraf
+    state: present

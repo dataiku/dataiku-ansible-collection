@@ -1,0 +1,11 @@
+---
+- name: restart telegraf
+  become: true
+  systemd:
+    name: telegraf
+    state: restarted
+
+- name: daemon reload
+  become: true
+  systemd:
+    daemon_reload: true

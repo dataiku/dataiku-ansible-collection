@@ -51,7 +51,7 @@ This allows you to:
 Basic Usage
 ----------------
 
-Find some more examples [here](doc/examples/).
+## Using Modules
 
 ```YAML
 - hosts: servers
@@ -95,6 +95,31 @@ Find some more examples [here](doc/examples/).
               - dss-users
 ```
 
+## Using Roles
+
+Using Roles from a playbook
+```YAML
+- hosts: servers
+  become: true
+  roles:
+    - name: dataiku.dss.install_telegraf
+      vars:
+        telegraf_conf_dss_datadir: /data/dataiku/dss_data
+        telegraf_conf_dss_id: test-collections
+        telegraph_hostname: dss.example.com
+```
+
+Using Roles from a task
+```YAML
+tasks:
+  - import_role:
+      name: dataiku.dss.install_telegraf
+    vars:
+      telegraf_conf_dss_datadir: /data/dataiku/dss_data
+      telegraf_conf_dss_id: test-collections
+      telegraph_hostname: dss.example.com
+```
+
 
 Migrating from dataiku-ansible-modules
 -----------------------------------------
@@ -127,8 +152,3 @@ simply becomes :
 ```
 
 Alternatively, the environment variable `ANSIBLE_COLLECTION_PATH` can be leveraged so that ansible auto discovers the right modules
-
-License
--------
-
-Apache 2.0

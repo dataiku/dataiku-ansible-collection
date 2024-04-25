@@ -1,0 +1,36 @@
+---
+force_install: false
+keep_tmp_directory: false
+archive_output: /data/dataiku/tmp
+compilation_output: /data/dataiku/opt
+
+leptonica_version: 1.83.1
+leptonica_archive_source: "https://github.com/DanBloomberg/leptonica/releases/download/{{ leptonica_version }}/leptonica-{{ leptonica_version }}.tar.gz"
+leptonica_unarchive_options: []
+leptonica_unarchive_prefix: "{{ archive_output }}"
+leptonica_compile_env_vars:
+  LANG: en_US.utf-8
+  LC_ALL: en_US.utf-8
+leptonica_compile_options: --with-zlib --with-jpeg --with-libwebp --with-libtiff --with-libpng
+leptonica_output_dir: "{{ compilation_output }}"
+leptonica_state_file: "{{ leptonica_output_dir }}/leptonica-install.txt"
+
+tessdata_version: 4.1.0
+tessdata_archive_source: "https://github.com/tesseract-ocr/tessdata/archive/refs/tags/{{ tessdata_version }}.tar.gz"
+tessdata_unarchive_options:
+  - --strip-components=1
+  - --exclude=configs
+  - --exclude=pdf.ttf
+tessdata_output_dir: "{{ compilation_output }}/share/tessdata"
+
+tesseract_version: 5.3.3
+tesseract_archive_source: "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/{{ tesseract_version }}.tar.gz"
+tesseract_unarchive_options: []
+tesseract_unarchive_prefix: "{{ archive_output }}"
+tesseract_compile_env_vars:
+  LANG: en_US.utf-8
+  LC_ALL: en_US.utf-8
+  LIBLEPT_HEADERSDIR: "{{ leptonica_output_dir }}"
+  PKG_CONFIG_PATH: /data/dataiku/opt/lib/pkgconfig/
+tesseract_compile_options:
+tesseract_output_dir: "{{ compilation_output }}"

@@ -1,14 +1,10 @@
 import os
 import pytest
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
     is_version_more_recent,
     discover_install_dir_python,
-    add_dataikuapi_to_path,
-    add_dss_connection_args,
-    get_client_from_parsed_args,
     update,
     extract_keys,
     exclude_keys

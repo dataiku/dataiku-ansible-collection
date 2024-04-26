@@ -9,7 +9,7 @@ authors:
 description: Dataiku DSS ansible collection
 license:
 - Apache 2.0
-tags: ["dataiku","dss","data-science-studio"]
+tags: ["dataiku", "dss", "data-science-studio"]
 dependencies: {}
 repository: http://dataiku/dataiku-ansible-collection
 homepage: https://github.com/dataiku/dataiku-ansible-collection

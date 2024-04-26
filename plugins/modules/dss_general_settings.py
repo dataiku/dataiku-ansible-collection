@@ -50,8 +50,22 @@ options:
     settings:
         type: dict
         description:
-            - General settings values to modify. Can be ignored to just get the current values
+            - General settings values to modify. Can be ignored to just get the current values.
+              Mutually exclusive with 'container_exec_configs' and 'spark_exec_configs'
         required: false
+        default: {}
+    container_exec_configs:
+        type: dict
+        description:
+            - Partial or complete container exec config to modify on all configurations. Mutually exclusive with 'settings'
+        required: false
+        default: {}
+    spark_exec_configs:
+        type: dict
+        description:
+            - Partial or complete spark exec config to modify on all configurations. Mutually exclusive with 'settings'
+        required: false
+        default: {}
 author:
     - Jean-Bernard Jansen (jean-bernard.jansen@dataiku.com)
 """
@@ -133,6 +147,8 @@ def run_module():
     # the module
     module_args = dict(
         settings=dict(type="dict", required=False, default={}),
+        container_exec_configs=dict(type="dict", required=False, default={}),
+        spark_exec_configs=dict(type="dict", required=False, default={}),
         silent_update_secrets=dict(type="bool", required=False, default=True)
     )
     add_dss_connection_args(module_args)
@@ -142,6 +158,9 @@ def run_module():
 
     args = MakeNamespace(module.params)
 
+    if args.settings and (args.container_exec_configs or args.spark_exec_configs):
+        module.fail_json(msg="Bad Input. Settings and exec configs cannot be set at the same time")
+
     result = dict(changed=False, message="UNCHANGED", previous_settings=None, settings=None)
 
     client = None
@@ -149,18 +168,35 @@ def run_module():
     try:
         client = get_client_from_parsed_args(module)
         general_settings = client.get_general_settings()
-        current_values = extract_keys(general_settings.settings, args.settings)
+
+        if args.container_exec_configs or args.spark_exec_configs:
+            current_values = dict(
+                containerSettings=dict(executionConfigs=general_settings.settings["containerSettings"]["executionConfigs"]),
+                sparkSettings=dict(executionConfigs=general_settings.settings["sparkSettings"]["executionConfigs"])
+            )
+        else:
+            current_values = extract_keys(general_settings.settings, args.settings)
 
         # Prepare the result for dry-run mode
         result["previous_settings"] = current_values
         result["dss_general_settings"] = general_settings.settings
 
-        if args.silent_update_secrets:
-            current_values_password_excluded = exclude_keys(current_values, encrypted_fields)
-            new_values_password_excluded = exclude_keys(args.settings, encrypted_fields)
-            result["changed"] = current_values_password_excluded != new_values_password_excluded
+        if args.container_exec_configs:
+            for container_conf in current_values["containerSettings"]["executionConfigs"]:
+                if extract_keys(container_conf, args.container_exec_configs) != args.container_exec_configs:
+                    result["changed"] = True
+        if args.spark_exec_configs:
+            for spark_conf in current_values["sparkSettings"]["executionConfigs"]:
+                if extract_keys(spark_conf, args.spark_exec_configs) != args.spark_exec_configs:
+                    result["changed"] = True
+
         else:
-            result["changed"] = current_values != args.settings
+            if args.silent_update_secrets:
+                current_values_password_excluded = exclude_keys(current_values, encrypted_fields)
+                new_values_password_excluded = exclude_keys(args.settings, encrypted_fields)
+                result["changed"] = current_values_password_excluded != new_values_password_excluded
+            else:
+                result["changed"] = current_values != args.settings
 
         if result["changed"]:
             result["message"] = "MODIFIED"
@@ -169,7 +205,15 @@ def run_module():
             module.exit_json(**result)
 
         # Apply the changes
-        update(general_settings.settings, args.settings)
+        if args.container_exec_configs:
+            for container_conf in current_values["containerSettings"]["executionConfigs"]:
+                update(container_conf, args.container_exec_configs)
+        if args.spark_exec_configs:
+            for spark_conf in current_values["sparkSettings"]["executionConfigs"]:
+                update(spark_conf, args.spark_exec_configs)
+        else:
+            update(general_settings.settings, args.settings)
+
         general_settings.save()
 
         module.exit_json(**result)

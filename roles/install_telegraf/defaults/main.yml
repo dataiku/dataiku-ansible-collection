@@ -38,25 +38,29 @@ telegraf_conf_inputs_content: |
     address = "localhost:22"
   {% if docker_installed.rc == 0 %}
   [[inputs.docker]]
+    perdevice = false
+    perdevice_include = ["cpu", "network"]
+    total = true
+    total_include = ["cpu"]
   {% endif %}
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-backend"
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-fek"
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.jek.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-jek"

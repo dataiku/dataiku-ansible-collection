@@ -2,7 +2,7 @@
 telegraf_version: "1.30.1"
 telegraf_conf_dss_datadir:
 telegraf_conf_dss_id:
-telegraph_hostname:
+telegraf_hostname:
 telegraf_conf_core_content: |
   [agent]
     interval = "10s"
@@ -13,7 +13,7 @@ telegraf_conf_core_content: |
     flush_interval = "10s"
     flush_jitter = "0s"
     precision = "0s"
-    hostname = "{{ telegraph_hostname | default(hostname) }}"
+    hostname = "{{ telegraf_hostname | default(hostname) }}"
     omit_hostname = false
 telegraf_conf_inputs_content: |
   [[inputs.cpu]]
@@ -38,25 +38,29 @@ telegraf_conf_inputs_content: |
     address = "localhost:22"
   {% if docker_installed.rc == 0 %}
   [[inputs.docker]]
+    perdevice = false
+    perdevice_include = ["cpu", "network"]
+    total = true
+    total_include = ["cpu"]
   {% endif %}
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-backend"
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-fek"
   [[inputs.procstat]]
     interval = "20s"
     pattern = "Ddku\\.jek.*-cp {{ telegraf_conf_dss_datadir }}"
-    pid_tag = true
+    tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id="{{ telegraf_conf_dss_id }}"
       dimension="dss-jek"

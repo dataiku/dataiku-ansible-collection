@@ -7,7 +7,9 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     discover_install_dir_python,
     update,
     extract_keys,
-    exclude_keys
+    exclude_keys,
+    smart_update_named_list,
+    smart_update_named_lists
 )
 
 
@@ -87,3 +89,28 @@ def test_extract_keys(test_input, expected):
 ])
 def test_exclude_keys(test_input, expected):
     assert exclude_keys(*test_input) == expected
+
+
+def test_smart_update_named_lists():
+    named_list = [
+        dict(name="first", phone="0102030405", address="somewhere"),
+        dict(name="second", phone="azertyuiop", address="here"),
+        dict(name="third", phone="a1z2e3r4t5y6", address="dunno"),
+        dict(name="fourth", phone="wxcvbnhyt", address="there"),
+    ]
+    update_named_list = [
+        dict(name="third", phone="0908070605", address="iknow", city="Town"),
+        dict(name="fifth", phone="fqùkjfsmdqlkfj", address="there", language="spoken"),
+    ]
+    expected = [
+        dict(name="first", phone="0102030405", address="somewhere"),
+        dict(name="second", phone="azertyuiop", address="here"),
+        dict(name="third", phone="0908070605", address="iknow", city="Town"),
+        dict(name="fourth", phone="wxcvbnhyt", address="there"),
+        dict(name="fifth", phone="fqùkjfsmdqlkfj", address="there", language="spoken"),
+    ]
+
+    result = smart_update_named_lists(named_list, update_named_list)
+    print(result)
+
+    assert result == expected

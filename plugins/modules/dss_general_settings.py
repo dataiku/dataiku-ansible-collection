@@ -51,19 +51,6 @@ options:
         type: dict
         description:
             - General settings values to modify. Can be ignored to just get the current values.
-              Mutually exclusive with 'container_exec_configs' and 'spark_exec_configs'
-        required: false
-        default: {}
-    container_exec_configs:
-        type: dict
-        description:
-            - Partial or complete container exec config to modify on all configurations. Mutually exclusive with 'settings'
-        required: false
-        default: {}
-    spark_exec_configs:
-        type: dict
-        description:
-            - Partial or complete spark exec config to modify on all configurations. Mutually exclusive with 'settings'
         required: false
         default: {}
 author:
@@ -123,6 +110,7 @@ changed:
 """
 
 import traceback
+import copy
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
@@ -133,12 +121,24 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dataikuapi_to_path,
     update,
     exclude_keys,
+    smart_update_named_lists
 )
 
+smart_update_fields_template = {
+    "containerSettings": {
+        "executionConfigs": []
+    },
+    "sparkSettings": {
+        "executionConfigs": []
+    }
+}
 
 encrypted_fields = [
     "ldapSettings.bindPassword", "ssoSettings.samlSPParams.keystorePassword", "ssoSettings.openIDParams.clientSecret",
     "azureADSettings.credentialsClientSecret", "azureADSettings.credentialsCertificatePassword"
+]
+smart_update_fields = [
+    "containerSettings.executionConfigs", "sparkSettings.executionConfigs"
 ]
 
 
@@ -147,8 +147,6 @@ def run_module():
     # the module
     module_args = dict(
         settings=dict(type="dict", required=False, default={}),
-        container_exec_configs=dict(type="dict", required=False, default={}),
-        spark_exec_configs=dict(type="dict", required=False, default={}),
         silent_update_secrets=dict(type="bool", required=False, default=True)
     )
     add_dss_connection_args(module_args)
@@ -158,9 +156,6 @@ def run_module():
 
     args = MakeNamespace(module.params)
 
-    if args.settings and (args.container_exec_configs or args.spark_exec_configs):
-        module.fail_json(msg="Bad Input. Settings and exec configs cannot be set at the same time")
-
     result = dict(changed=False, message="UNCHANGED", previous_settings=None, settings=None)
 
     client = None
@@ -169,35 +164,35 @@ def run_module():
         client = get_client_from_parsed_args(module)
         general_settings = client.get_general_settings()
 
-        if args.container_exec_configs or args.spark_exec_configs:
-            current_values = dict(
-                containerSettings=dict(executionConfigs=general_settings.settings["containerSettings"]["executionConfigs"]),
-                sparkSettings=dict(executionConfigs=general_settings.settings["sparkSettings"]["executionConfigs"])
-            )
-        else:
-            current_values = extract_keys(general_settings.settings, args.settings)
+        current_values = extract_keys(general_settings.settings, args.settings)
 
         # Prepare the result for dry-run mode
         result["previous_settings"] = current_values
         result["dss_general_settings"] = general_settings.settings
 
-        if args.container_exec_configs:
-            for container_conf in current_values["containerSettings"]["executionConfigs"]:
-                if extract_keys(container_conf, args.container_exec_configs) != args.container_exec_configs:
-                    result["changed"] = True
-        if args.spark_exec_configs:
-            for spark_conf in current_values["sparkSettings"]["executionConfigs"]:
-                if extract_keys(spark_conf, args.spark_exec_configs) != args.spark_exec_configs:
-                    result["changed"] = True
+        # Smart update of execution configs
+        current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
+        new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
+        updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
+        for key in new_smart_update_fields.keys():
+            if new_smart_update_fields[key]["executionConfigs"]:
+                updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(
+                    current_smart_update_fields[key]["executionConfigs"],
+                    new_smart_update_fields[key]["executionConfigs"]
+                ) or []
+        smart_update_fields_changed = current_smart_update_fields != updated_smart_update_fields
 
+        # Process regular settings
+        current_regular_settings = exclude_keys(current_values, smart_update_fields)
+        new_regular_settings = exclude_keys(args.settings, smart_update_fields)
+        if args.silent_update_secrets:
+            current_regular_settings_password_excluded = exclude_keys(current_regular_settings, encrypted_fields)
+            new_regular_settings_password_excluded = exclude_keys(new_regular_settings, encrypted_fields)
+            regular_settings_changed = current_regular_settings_password_excluded != new_regular_settings_password_excluded
         else:
-            if args.silent_update_secrets:
-                current_values_password_excluded = exclude_keys(current_values, encrypted_fields)
-                new_values_password_excluded = exclude_keys(args.settings, encrypted_fields)
-                result["changed"] = current_values_password_excluded != new_values_password_excluded
-            else:
-                result["changed"] = current_values != args.settings
+            regular_settings_changed = current_regular_settings != new_regular_settings
 
+        result["changed"] = smart_update_fields_changed or regular_settings_changed
         if result["changed"]:
             result["message"] = "MODIFIED"
 
@@ -205,15 +200,8 @@ def run_module():
             module.exit_json(**result)
 
         # Apply the changes
-        if args.container_exec_configs:
-            for container_conf in current_values["containerSettings"]["executionConfigs"]:
-                update(container_conf, args.container_exec_configs)
-        if args.spark_exec_configs:
-            for spark_conf in current_values["sparkSettings"]["executionConfigs"]:
-                update(spark_conf, args.spark_exec_configs)
-        else:
-            update(general_settings.settings, args.settings)
-
+        update(general_settings.settings, new_regular_settings)
+        update(general_settings.settings, updated_smart_update_fields)
         general_settings.save()
 
         module.exit_json(**result)

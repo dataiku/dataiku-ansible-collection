@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 import sys
@@ -125,6 +126,19 @@ def update(d, u):
     else:
         d = u
     return d
+
+
+def smart_update_named_lists(l1, l2):
+    result = copy.deepcopy(l1)
+    for el2 in l2:
+        name2 = el2["name"]
+        for idx1, el1 in enumerate(l1):
+            if el1["name"] == name2:
+                result[idx1].update(el2)
+                break
+        else:
+            result.append(el2)
+    return result
 
 
 def extract_keys(input_data, keys_reference):

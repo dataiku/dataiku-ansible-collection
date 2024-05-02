@@ -142,19 +142,25 @@
 - name: Smart update Container Execution and Spark Configs
   dataiku.dss.dss_general_settings:
     connect_to: "{{ dss_connection_info }}"
-    container_exec_configs:
-      repositoryURL: dummy-ansible-collection-registry/root-repository
-      ensureNamespaceCompliance: true
-    spark_exec_configs:
-      conf:
-        - key: spark.executor.memory
-          value: 12g
-          isFinal: false
-          secret: false
-        - key: spark.port.maxRetries
-          value: '1'
-          isFinal: false
-          secret: false
+    settings:
+      containerSettings:
+        executionConfigs:
+          - name: ansible-collection-1
+            ensureNamespaceCompliance: true
+          - name: ansible-collection-2
+            repositoryURL: dummy-ansible-collection-registry/root-repository
+      sparkSettings:
+        executionConfigs:
+          - name: ansible-collection-2
+            conf:
+              - key: spark.executor.memory
+                value: 12g
+                isFinal: false
+                secret: false
+              - key: spark.port.maxRetries
+                value: '1'
+                isFinal: false
+                secret: false
   register: smart_update
 
 - name: prepare facts for assertions
@@ -179,35 +185,35 @@
       - smart_update.message == "MODIFIED"
       - smart_update.dss_general_settings is defined
       - smart_update.previous_settings is defined
-      # TODO: this test cannot succeed as the creation does not return a connection with the default values
-      # - smart_update.previous_settings | json_query('containerSettings.executionConfigs') == container_and_spark_configs.dss_general_settings | json_query('containerSettings.executionConfigs')
-      # - smart_update.previous_settings | json_query('sparkSettings.executionConfigs') == container_and_spark_configs.dss_general_settings | json_query('sparkSettings.executionConfigs')
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | unique | first == expected_container_exec_config_udpate.repositoryURL
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | unique | first == expected_container_exec_config_udpate.ensureNamespaceCompliance
-      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | unique | first == expected_spark_exec_config_udpate.conf
+      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | length == 1
+      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | first == expected_container_exec_config_udpate.repositoryURL
+      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | first == expected_container_exec_config_udpate.ensureNamespaceCompliance
+      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | last == expected_spark_exec_config_udpate.conf
 
 
 - name: Check idempotence of Container Execution and Spark Configs Smart update
   dataiku.dss.dss_general_settings:
     connect_to: "{{ dss_connection_info }}"
-    container_exec_configs:
-      repositoryURL: dummy-ansible-collection-registry/root-repository
-      ensureNamespaceCompliance: true
-    spark_exec_configs:
-      conf:
-        - key: spark.executor.memory
-          value: 12g
-          isFinal: false
-          secret: false
-        - key: spark.port.maxRetries
-          value: '1'
-          isFinal: false
-          secret: false
+    settings:
+      containerSettings:
+        executionConfigs:
+          - name: ansible-collection-1
+            ensureNamespaceCompliance: true
+          - name: ansible-collection-2
+            repositoryURL: dummy-ansible-collection-registry/root-repository
+      sparkSettings:
+        executionConfigs:
+          - name: ansible-collection-2
+            conf:
+              - key: spark.executor.memory
+                value: 12g
+                isFinal: false
+                secret: false
+              - key: spark.port.maxRetries
+                value: '1'
+                isFinal: false
+                secret: false
   register: smart_update_idem
-
 
 - assert:
     that:
@@ -215,9 +221,3 @@
       - smart_update_idem.message == "UNCHANGED"
       - smart_update_idem.dss_general_settings is defined
       - smart_update_idem.previous_settings is defined
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | unique | first == expected_container_exec_config_udpate.repositoryURL
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | unique | first == expected_container_exec_config_udpate.ensureNamespaceCompliance
-      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | unique | length == 1
-      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | unique | first == expected_spark_exec_config_udpate.conf

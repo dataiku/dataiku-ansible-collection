@@ -8,7 +8,6 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     update,
     extract_keys,
     exclude_keys,
-    smart_update_named_list,
     smart_update_named_lists
 )
 

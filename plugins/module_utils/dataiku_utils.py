@@ -53,11 +53,11 @@ def discover_install_dir_python(data_dir):
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
-    data_dir = (
-        args.data_dir
-        if args.data_dir is not None
-        else args.connect_to.get("data_dir", os.environ.get("DATAIKU_ANSIBLE_DSS_DATADIR", "/data/dataiku/dss_data"))
-    )
+    data_dir = os.environ.get("DATAIKU_ANSIBLE_DSS_DATADIR", "/data/dataiku/dss_data")
+    if args.data_dir:
+        data_dir = args.data_dir
+    elif args.connect_to and "data_dir" in args.connect_to:
+        data_dir = args.connect_to["data_dir"]
 
     install_dir = discover_install_dir_python(data_dir)
 

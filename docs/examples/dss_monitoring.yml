@@ -1,0 +1,61 @@
+# DSS Monitoring configuration
+#
+# This playbook configures a DSS instance to provide some monitoring on top of DSS itself.
+# It can be used to instrument and plug DSS to an existing monitoring stack like prometheus-grafana.
+#
+# This playbook installs telegraf and configures DSS to expose metrics of the underlying running jobs
+#
+# This playbook expects host to be refereed in the inventory as dss_node
+#
+# The target distritbution is AlmaLinux 8 or Debian-like
+#
+# You can use an inventory of this form:
+#
+# ---
+# all:
+#   hosts:
+#     dss:
+#       ansible_host: DSS_DESIGN_HOSTNAME_OR_IP
+#   vars:
+#     ansible_ssh_user: REMOTE_USER_NAME
+#
+
+
+---
+- name: Configure DSS and install monitoring stack
+  hosts: all
+  vars:
+    dss_data_dir_location: /data/dataiku
+    dss_admin_user: dataiku
+  tasks:
+    - name: Fetch API key
+      become: true
+      become_user: "{{ dss_admin_user }}"
+      dataiku.dss.dss_get_credentials:
+        dataiku.dss.dss_get_credentials:
+          datadir: "{{ dss_data_dir_location }}"
+          api_key_name: dss-monitoring-example
+        register: dss_connection_info
+
+    - name: Fetch dss facts
+      become: true
+      become_user: dataiku
+      dataiku.dss.dss_system_facts:
+        datadir: /data/dataiku/dss_data
+      register: dss_system_info
+
+    - name: Configure DSS to advertise metrics of running jobs
+      dataiku.dss.dss_general_settings:
+        connect_to: "{{ dss_connection_info }}"
+        settings:
+          graphiteServerUrl: "127.0.0.1:9109"
+          graphiteMetricPrefix: "dss.dss-{{ dss_system_info.install_ini.general.nodeid }}"
+          graphiteReportingDelay: 1
+
+    - name: Install telegraf and configure probes
+      import_role:
+        name: dataiku.dss.install_telegraf
+      vars:
+        telegraf_conf_dss_datadir: "{{ dss_data_dir_location }}"
+        telegraf_hostname: "{{ dss_system_info.install_ini.general.nodeid }}.example.com"
+        telegraf_conf_dss_id: "dss-{{ dss_system_info.install_ini.general.nodeid }}"

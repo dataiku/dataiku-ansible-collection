@@ -53,11 +53,11 @@ def discover_install_dir_python(data_dir):
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
-    data_dir = (
-        args.data_dir
-        if args.data_dir is not None
-        else args.connect_to.get("data_dir", os.environ.get("DATAIKU_ANSIBLE_DSS_DATADIR", "/data/dataiku/dss_data"))
-    )
+    data_dir = os.environ.get("DATAIKU_ANSIBLE_DSS_DATADIR", "/data/dataiku/dss_data")
+    if args.data_dir:
+        data_dir = args.data_dir
+    elif args.connect_to and "data_dir" in args.connect_to:
+        data_dir = args.connect_to["data_dir"]
 
     install_dir = discover_install_dir_python(data_dir)
 
@@ -86,25 +86,28 @@ def get_client_from_parsed_args(module):
     from dataikuapi.dssclient import DSSClient
 
     args = MakeNamespace(module.params)
-    api_key = (
-        args.api_key
-        if args.api_key is not None
-        else args.connect_to.get("api_key", os.environ.get("DATAIKU_ANSIBLE_DSS_API_KEY", None))
-    )
+    api_key = os.environ.get("DATAIKU_ANSIBLE_DSS_API_KEY", None)
+    if args.api_key:
+        api_key = args.api_key
+    elif args.connect_to and "api_key" in args.connect_to:
+        api_key = args.connect_to["api_key"]
+    
     if api_key is None:
         module.fail_json(
             msg="Missing an API Key, either from 'api_key' parameter, 'connect_to' parameter or DATAIKU_ANSIBLE_DSS_API_KEY env var"
         )
-    port = (
-        args.port
-        if args.port is not None
-        else args.connect_to.get("port", os.environ.get("DATAIKU_ANSIBLE_DSS_PORT", "80"))
-    )
-    host = (
-        args.host
-        if args.host is not None
-        else args.connect_to.get("host", os.environ.get("DATAIKU_ANSIBLE_DSS_HOST", "127.0.0.1"))
-    )
+
+    port = os.environ.get("DATAIKU_ANSIBLE_DSS_PORT", "80")
+    if args.port:
+        port = args.port
+    elif args.connect_to and "port" in args.connect_to:
+        port = args.connect_to["port"]
+
+    host = os.environ.get("DATAIKU_ANSIBLE_DSS_HOST", "127.0.0.1")
+    if args.host:
+        host = args.host
+    elif args.connect_to and "host" in args.connect_to:
+        host = args.connect_to["host"]
 
     client = DSSClient(f"http://{args.host}:{port}", api_key=api_key)
 

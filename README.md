@@ -107,6 +107,10 @@ Using Roles from a playbook
         telegraf_conf_dss_datadir: /data/dataiku/dss_data
         telegraf_conf_dss_id: test-collections
         telegraph_hostname: dss.example.com
+    
+    - name: dataiku.dss.install_tesseract
+      vars:
+        force_install: "{{ dataiku_dss_was_installed or dataiku_dss_was_upgraded }}"
 ```
 
 Using Roles from a task
@@ -118,6 +122,11 @@ tasks:
       telegraf_conf_dss_datadir: /data/dataiku/dss_data
       telegraf_conf_dss_id: test-collections
       telegraph_hostname: dss.example.com
+
+  - import_role:
+      name: dataiku.dss.install_tesseract
+    vars:
+      force_install: "{{ dataiku_dss_was_installed or dataiku_dss_was_upgraded }}"
 ```
 
 

@@ -130,17 +130,9 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dataikuapi_to_path,
     update,
     exclude_keys,
-    smart_update_named_lists
+    smart_update_named_lists,
+    build_template_from_fields
 )
-
-smart_update_fields_template = {
-    "containerSettings": {
-        "executionConfigs": []
-    },
-    "sparkSettings": {
-        "executionConfigs": []
-    }
-}
 
 encrypted_fields = [
     "ldapSettings.bindPassword", "ssoSettings.samlSPParams.keystorePassword", "ssoSettings.openIDParams.clientSecret",
@@ -149,6 +141,7 @@ encrypted_fields = [
 smart_update_fields = [
     "containerSettings.executionConfigs", "sparkSettings.executionConfigs"
 ]
+smart_update_fields_template = build_template_from_fields(smart_update_fields, default_value=[])
 
 
 def run_module():

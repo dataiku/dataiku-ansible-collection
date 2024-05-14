@@ -8,7 +8,8 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     update,
     extract_keys,
     exclude_keys,
-    smart_update_named_lists
+    smart_update_named_lists,
+    build_template_from_fields
 )
 
 
@@ -113,3 +114,18 @@ def test_smart_update_named_lists():
     print(result)
 
     assert result == expected
+
+
+def test_build_template_from_fields():
+    input_fields = ["dataiku.dss.general_settings.container_exec.config", "dss.general_settings.config", "config"]
+    default_value = None
+
+    template = build_template_from_fields(input_fields, default_value)
+
+    expected_template = {
+        "dataiku": {"dss": {"general_settings": {"container_exec": {"config": None}}}},
+        "dss": {"general_settings": {"config": None}},
+        "config": None
+    }
+
+    assert template == expected_template

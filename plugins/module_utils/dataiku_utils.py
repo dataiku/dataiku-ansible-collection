@@ -168,3 +168,20 @@ def exclude_keys(dictionary, excluded_keys):
             else:
                 result[key] = None
     return result
+
+
+def _build_template_from_field(base_template, values, default_value):
+    current_key = values.pop(0)
+    if len(values) == 0:
+        base_template[current_key] = default_value
+    else:
+        base_template[current_key] = _build_template_from_field(dict(), values, default_value)
+    return base_template
+
+
+def build_template_from_fields(fields, default_value, delimiter="."):
+    result = dict()
+    for field in fields:
+        all_keys = field.split(delimiter)
+        result.update(_build_template_from_field(dict(), all_keys, default_value))
+    return result

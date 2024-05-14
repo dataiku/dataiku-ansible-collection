@@ -92,7 +92,7 @@ def get_client_from_parsed_args(module):
         api_key = args.api_key
     elif args.connect_to and "api_key" in args.connect_to:
         api_key = args.connect_to["api_key"]
-    
+
     if api_key is None:
         module.fail_json(
             msg="Missing an API Key, either from 'api_key' parameter, 'connect_to' parameter or DATAIKU_ANSIBLE_DSS_API_KEY env var"

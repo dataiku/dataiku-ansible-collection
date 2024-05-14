@@ -47,6 +47,15 @@ options:
               Setting it to 'false' will always return a 'Changed' state.
         default: true
         required: false
+    enable_smart_update:
+        type: bool
+        description:
+            - Whether to perform a smart update of the named lists attributes. When enabled, the DSS settings container exec configs
+              and spark exec configs will be updated based on the 'name' key. The module will iterate over the existing exec configs
+              and update the ones that have matching 'name' keys, else append them to the list. Warning, when enabled, it is not possible
+              to delete an exec config using ansible.
+        default: true
+        required: false
     settings:
         type: dict
         description:
@@ -147,7 +156,8 @@ def run_module():
     # the module
     module_args = dict(
         settings=dict(type="dict", required=False, default={}),
-        silent_update_secrets=dict(type="bool", required=False, default=True)
+        silent_update_secrets=dict(type="bool", required=False, default=True),
+        enable_smart_update=dict(type="bool", required=False, default=True)
     )
     add_dss_connection_args(module_args)
 
@@ -164,35 +174,42 @@ def run_module():
         client = get_client_from_parsed_args(module)
         general_settings = client.get_general_settings()
 
-        current_values = extract_keys(general_settings.settings, args.settings)
+        current_settings = extract_keys(general_settings.settings, args.settings)
+        new_settings = args.settings
 
         # Prepare the result for dry-run mode
-        result["previous_settings"] = current_values
+        result["previous_settings"] = current_settings
         result["dss_general_settings"] = general_settings.settings
 
-        # Smart update of execution configs
-        current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
-        new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
-        updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
-        for key in new_smart_update_fields.keys():
-            if new_smart_update_fields[key]["executionConfigs"]:
-                updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(
-                    current_smart_update_fields[key]["executionConfigs"],
-                    new_smart_update_fields[key]["executionConfigs"]
-                ) or []
-        smart_update_fields_changed = current_smart_update_fields != updated_smart_update_fields
+        smart_update_fields_changed = False
+        if args.enable_smart_update:
+            # Extract execution configs from regular settings
+            current_values = exclude_keys(current_settings, smart_update_fields)
+            new_settings = exclude_keys(args.settings, smart_update_fields)
+
+            # Smart update of execution configs
+            current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
+            new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
+            updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
+            for key in new_smart_update_fields.keys():
+                if new_smart_update_fields[key]["executionConfigs"]:
+                    updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(
+                        current_smart_update_fields[key]["executionConfigs"],
+                        new_smart_update_fields[key]["executionConfigs"]
+                    ) or []
+            smart_update_fields_changed = current_smart_update_fields != updated_smart_update_fields
+        else:
+            current_values = current_settings
 
         # Process regular settings
-        current_regular_settings = exclude_keys(current_values, smart_update_fields)
-        new_regular_settings = exclude_keys(args.settings, smart_update_fields)
         if args.silent_update_secrets:
-            current_regular_settings_password_excluded = exclude_keys(current_regular_settings, encrypted_fields)
-            new_regular_settings_password_excluded = exclude_keys(new_regular_settings, encrypted_fields)
-            regular_settings_changed = current_regular_settings_password_excluded != new_regular_settings_password_excluded
+            current_values_password_excluded = exclude_keys(current_values, encrypted_fields)
+            new_values_password_excluded = exclude_keys(new_settings, encrypted_fields)
+            settings_changed = current_values_password_excluded != new_values_password_excluded
         else:
-            regular_settings_changed = current_regular_settings != new_regular_settings
+            settings_changed = current_values != new_settings
 
-        result["changed"] = smart_update_fields_changed or regular_settings_changed
+        result["changed"] = smart_update_fields_changed or settings_changed
         if result["changed"]:
             result["message"] = "MODIFIED"
 
@@ -200,8 +217,11 @@ def run_module():
             module.exit_json(**result)
 
         # Apply the changes
-        update(general_settings.settings, new_regular_settings)
-        update(general_settings.settings, updated_smart_update_fields)
+        if args.enable_smart_update:
+            update(general_settings.settings, new_settings)
+            update(general_settings.settings, updated_smart_update_fields)
+        else:
+            update(general_settings.settings, new_settings)
         general_settings.save()
 
         module.exit_json(**result)

@@ -47,11 +47,21 @@ options:
               Setting it to 'false' will always return a 'Changed' state.
         default: true
         required: false
+    enable_smart_update:
+        type: bool
+        description:
+            - Whether to perform a smart update of the named lists attributes. When enabled, the DSS settings container exec configs
+              and spark exec configs will be updated based on the 'name' key. The module will iterate over the existing exec configs
+              and update the ones that have matching 'name' keys, else append them to the list. Warning, when enabled, it is not possible
+              to delete an exec config using ansible.
+        default: true
+        required: false
     settings:
         type: dict
         description:
-            - General settings values to modify. Can be ignored to just get the current values
+            - General settings values to modify. Can be ignored to just get the current values.
         required: false
+        default: {}
 author:
     - Jean-Bernard Jansen (jean-bernard.jansen@dataiku.com)
 """
@@ -109,6 +119,7 @@ changed:
 """
 
 import traceback
+import copy
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
@@ -119,13 +130,18 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dataikuapi_to_path,
     update,
     exclude_keys,
+    smart_update_named_lists,
+    build_template_from_fields
 )
-
 
 encrypted_fields = [
     "ldapSettings.bindPassword", "ssoSettings.samlSPParams.keystorePassword", "ssoSettings.openIDParams.clientSecret",
     "azureADSettings.credentialsClientSecret", "azureADSettings.credentialsCertificatePassword"
 ]
+smart_update_fields = [
+    "containerSettings.executionConfigs", "sparkSettings.executionConfigs"
+]
+smart_update_fields_template = build_template_from_fields(smart_update_fields, default_value=[])
 
 
 def run_module():
@@ -133,7 +149,8 @@ def run_module():
     # the module
     module_args = dict(
         settings=dict(type="dict", required=False, default={}),
-        silent_update_secrets=dict(type="bool", required=False, default=True)
+        silent_update_secrets=dict(type="bool", required=False, default=True),
+        enable_smart_update=dict(type="bool", required=False, default=True)
     )
     add_dss_connection_args(module_args)
 
@@ -149,19 +166,43 @@ def run_module():
     try:
         client = get_client_from_parsed_args(module)
         general_settings = client.get_general_settings()
-        current_values = extract_keys(general_settings.settings, args.settings)
+
+        current_settings = extract_keys(general_settings.settings, args.settings)
+        new_settings = args.settings
 
         # Prepare the result for dry-run mode
-        result["previous_settings"] = current_values
+        result["previous_settings"] = current_settings
         result["dss_general_settings"] = general_settings.settings
 
+        smart_update_fields_changed = False
+        if args.enable_smart_update:
+            # Extract execution configs from regular settings
+            current_values = exclude_keys(current_settings, smart_update_fields)
+            new_settings = exclude_keys(args.settings, smart_update_fields)
+
+            # Smart update of execution configs
+            current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
+            new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
+            updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
+            for key in new_smart_update_fields.keys():
+                if new_smart_update_fields[key]["executionConfigs"]:
+                    updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(
+                        current_smart_update_fields[key]["executionConfigs"],
+                        new_smart_update_fields[key]["executionConfigs"]
+                    ) or []
+            smart_update_fields_changed = current_smart_update_fields != updated_smart_update_fields
+        else:
+            current_values = current_settings
+
+        # Process regular settings
         if args.silent_update_secrets:
             current_values_password_excluded = exclude_keys(current_values, encrypted_fields)
-            new_values_password_excluded = exclude_keys(args.settings, encrypted_fields)
-            result["changed"] = current_values_password_excluded != new_values_password_excluded
+            new_values_password_excluded = exclude_keys(new_settings, encrypted_fields)
+            settings_changed = current_values_password_excluded != new_values_password_excluded
         else:
-            result["changed"] = current_values != args.settings
+            settings_changed = current_values != new_settings
 
+        result["changed"] = smart_update_fields_changed or settings_changed
         if result["changed"]:
             result["message"] = "MODIFIED"
 
@@ -169,7 +210,11 @@ def run_module():
             module.exit_json(**result)
 
         # Apply the changes
-        update(general_settings.settings, args.settings)
+        if args.enable_smart_update:
+            update(general_settings.settings, new_settings)
+            update(general_settings.settings, updated_smart_update_fields)
+        else:
+            update(general_settings.settings, new_settings)
         general_settings.save()
 
         module.exit_json(**result)

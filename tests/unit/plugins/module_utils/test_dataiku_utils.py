@@ -1,17 +1,15 @@
 import os
 import pytest
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
     is_version_more_recent,
     discover_install_dir_python,
-    add_dataikuapi_to_path,
-    add_dss_connection_args,
-    get_client_from_parsed_args,
     update,
     extract_keys,
-    exclude_keys
+    exclude_keys,
+    smart_update_named_lists,
+    build_template_from_fields
 )
 
 
@@ -91,3 +89,43 @@ def test_extract_keys(test_input, expected):
 ])
 def test_exclude_keys(test_input, expected):
     assert exclude_keys(*test_input) == expected
+
+
+def test_smart_update_named_lists():
+    named_list = [
+        dict(name="first", phone="0102030405", address="somewhere"),
+        dict(name="second", phone="azertyuiop", address="here"),
+        dict(name="third", phone="a1z2e3r4t5y6", address="dunno"),
+        dict(name="fourth", phone="wxcvbnhyt", address="there"),
+    ]
+    update_named_list = [
+        dict(name="third", phone="0908070605", address="iknow", city="Town"),
+        dict(name="fifth", phone="fqùkjfsmdqlkfj", address="there", language="spoken"),
+    ]
+    expected = [
+        dict(name="first", phone="0102030405", address="somewhere"),
+        dict(name="second", phone="azertyuiop", address="here"),
+        dict(name="third", phone="0908070605", address="iknow", city="Town"),
+        dict(name="fourth", phone="wxcvbnhyt", address="there"),
+        dict(name="fifth", phone="fqùkjfsmdqlkfj", address="there", language="spoken"),
+    ]
+
+    result = smart_update_named_lists(named_list, update_named_list)
+    print(result)
+
+    assert result == expected
+
+
+def test_build_template_from_fields():
+    input_fields = ["dataiku.dss.general_settings.container_exec.config", "dss.general_settings.config", "config"]
+    default_value = None
+
+    template = build_template_from_fields(input_fields, default_value)
+
+    expected_template = {
+        "dataiku": {"dss": {"general_settings": {"container_exec": {"config": None}}}},
+        "dss": {"general_settings": {"config": None}},
+        "config": None
+    }
+
+    assert template == expected_template

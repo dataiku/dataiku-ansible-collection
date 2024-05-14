@@ -45,7 +45,7 @@
     - name: Set per-host facts
       set_fact:
         dss_node_hostname: "{{ansible_fqdn if dss_node_poll_fqdn else ansible_host}}"
-      tags: [setup,dss-setup,dss]
+      tags: [setup, dss-setup, dss]
 
     - name: Disable SELinux
       become: true

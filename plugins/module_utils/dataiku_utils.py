@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 import sys
@@ -91,7 +92,7 @@ def get_client_from_parsed_args(module):
         api_key = args.api_key
     elif args.connect_to and "api_key" in args.connect_to:
         api_key = args.connect_to["api_key"]
-    
+
     if api_key is None:
         module.fail_json(
             msg="Missing an API Key, either from 'api_key' parameter, 'connect_to' parameter or DATAIKU_ANSIBLE_DSS_API_KEY env var"
@@ -127,6 +128,19 @@ def update(d, u):
     return d
 
 
+def smart_update_named_lists(l1, l2):
+    result = copy.deepcopy(l1)
+    for el2 in l2:
+        name2 = el2["name"]
+        for idx1, el1 in enumerate(l1):
+            if el1["name"] == name2:
+                result[idx1].update(el2)
+                break
+        else:
+            result.append(el2)
+    return result
+
+
 def extract_keys(input_data, keys_reference):
     if isinstance(input_data, Mapping):
         extracted_data = {}
@@ -153,4 +167,21 @@ def exclude_keys(dictionary, excluded_keys):
                 result[key] = exclude_keys(value, nested_excluded_keys)
             else:
                 result[key] = None
+    return result
+
+
+def _build_template_from_field(base_template, values, default_value):
+    current_key = values.pop(0)
+    if len(values) == 0:
+        base_template[current_key] = default_value
+    else:
+        base_template[current_key] = _build_template_from_field(dict(), values, default_value)
+    return base_template
+
+
+def build_template_from_fields(fields, default_value, delimiter="."):
+    result = dict()
+    for field in fields:
+        all_keys = field.split(delimiter)
+        result.update(_build_template_from_field(dict(), all_keys, default_value))
     return result

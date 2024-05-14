@@ -138,7 +138,6 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
-    extract_keys,
     add_dss_connection_args,
     get_client_from_parsed_args,
     add_dataikuapi_to_path,

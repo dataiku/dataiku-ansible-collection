@@ -6,9 +6,26 @@ DOCUMENTATION = """
 ---
 plugin: fm_dss
 short_description: Generates inventory of DSS from FM
-description:
+description: |
     This module queries a Fleet Manager and populates the inventory with the 
     DSS found in it.
+    
+    ---
+    plugin: dataiku.dss.fm_dss
+    dataiku_fleet_managers:
+    - id: <NAME>
+      host: <HTTPS_HOST>
+      instances:
+        access_type: public_ip
+        ssh:
+          user: <DSS_SSH_USER>
+      api_key:
+        file: "~/.config/dataiku/<NAME>.json"
+        ssh_auto_create: true
+      ssh:
+        user: <FM_SSH_USER> # Ex: ec2-user
+        host: <SSH_HOST> # Default to same than HTTPS if absent
+        fm_user: <USER_NAME_IN_FM> # A FM user is required to have a key
 """
 
 from ansible.plugins.inventory import BaseInventoryPlugin
@@ -48,7 +65,7 @@ class InventoryModule(BaseInventoryPlugin):
                 api_key_secret = None
                 if "file" in api_key_config:
                     file_path = os.path.expanduser(api_key_config["file"])
-                    if not os.path.exists(file_path) and "ssh_auto_create" in api_key_config:
+                    if not os.path.exists(file_path) and api_key_config.get("ssh_auto_create", False):
                         ssh_user = fleet_manager["ssh"]["user"]
                         ssh_host = fleet_manager["ssh"].get("host", host)
                         ssh_fm_unix_user = fleet_manager["ssh"].get("fm_unix_user", "dataiku")
@@ -97,6 +114,9 @@ class InventoryModule(BaseInventoryPlugin):
                 # Get list of instances
                 session = Session()
                 session.auth = HTTPBasicAuth(api_key_id, api_key_secret)
+                instances_config = fleet_manager["instances"]
+                network_access = instances_config.get("access_type", "public_ip")
+                instance_ssh_user = instances_config["ssh"]["user"]
 
                 # Get vnets
                 request = session.request("GET",f"{protocol}://{host}:{port}/api/public/tenants/{tenant_id}/virtual-networks")
@@ -104,10 +124,15 @@ class InventoryModule(BaseInventoryPlugin):
                 vnets_list = request.json()
                 vnets = {}
                 vnets_inventory = {}
-                tenant_group = inventory.add_group(f"fm-{fm_id}-{tenant_id}")
+                inventory.add_group(f"fm-{fm_id}-{tenant_id}")
+                tenant_group = inventory.groups[f"fm-{fm_id}-{tenant_id}"]
                 for vnet in vnets_list:
                     vnets[vnet["id"]] = vnet
-                    vnets_inventory[vnet["id"]] = tenant_group.add_child_group(f"fm-{fm_id}-{tenant_id}-{vnet.label}")
+                    group_name = f"fm-{fm_id}-{tenant_id}-{vnet['label']}"
+                    inventory.add_group(group_name)
+                    vnet_group = inventory.groups[group_name]
+                    tenant_group.add_child_group(vnet_group)
+                    vnets_inventory[vnet["id"]] = vnet_group
 
                 # Get instance templates
                 # request = session.request("GET",f"{protocol}://{host}:{port}/api/public/tenants/{tenant_id}/instance-settings-templates")
@@ -123,24 +148,44 @@ class InventoryModule(BaseInventoryPlugin):
                 for instance in instances:
                     logical_instance_id = instance["id"]
                     node_id = instance["label"]
+                    vnet_id = instance["virtualNetworkId"]
+                    vnet_name = instance["virtualNetworkLabel"]
+                    settings_id = instance["instanceSettingsTemplateId"]
+                    settings_name = instance["instanceSettingsTemplateLabel"]
                     inventory_hostname = f"fm-{fm_id}-{tenant_id}-{node_id}"
 
                     # Physical instance info
-                    request = session.request("GET",f"{protocol}://{host}:{port}/api/public/tenants/{tenant_id}/instances/{logical_instance_id}/status)")
+                    request = session.request("GET",f"{protocol}://{host}:{port}/api/public/tenants/{tenant_id}/instances/{logical_instance_id}/status")
                     request.raise_for_status()
                     status = request.json()
-                    
-                    
 
-                logger.info(json.dumps(vnets,indent=2))
-                logger.info(json.dumps(templates,indent=2))
-                logger.info(json.dumps(instances,indent=2))
-
-
-
+                    if status.get("hasPhysicalInstance", False):
+                        self.inventory.add_host(inventory_hostname)
+                        inventory_host = self.inventory.hosts[inventory_hostname]
+                        vnets_inventory[vnet_id].add_host(inventory_host)
+                        if network_access == "public_dns":
+                            ansible_host = status["publicDNS"]
+                        elif network_access == "private_dns":
+                            ansible_host = status["privateDNS"]
+                        elif network_access == "private_ip":
+                            ansible_host = status["privateIP"]
+                        else:
+                            ansible_host = status["publicIP"]
+                        inventory_host.set_variable("ansible_host", ansible_host)
+                        inventory_host.set_variable("ansible_user", instance_ssh_user)
+                        dataiku_facts = {
+                            "dss": {
+                                "image_id": instance["imageId"],
+                                "port": "10000",
+                                "datadir": "/data/dataiku/dss_data",
+                                "node_id": node_id,
+                                "node_type": instance["dssNodeType"],
+                                "logical_instance_id": logical_instance_id,
+                            }
+                        }
+                        inventory_host.set_variable("dataiku", dataiku_facts)
+                        logger.info(f"Generated data for instance {inventory_hostname} in group {vnets_inventory[vnet_id].name}")
+                    else:
+                        logger.info(f"Instance {inventory_hostname} is ignored because physical instance is not found.") 
         except Exception as e:
             logger.error(e, exc_info=True)
-
-        self.inventory.add_host("robert")
-        self.inventory.set_variable("robert", "ansible_host", "robert.com")
-        #print(json.dumps(inventory,indent=2))

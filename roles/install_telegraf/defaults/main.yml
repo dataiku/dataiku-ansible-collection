@@ -2,8 +2,15 @@
 telegraf_version: "1.30.1"
 telegraf_conf_dss_datadir:
 telegraf_conf_dss_id:
+telegraf_global_tags:
+  dss_id: "{{telegraf_conf_dss_id}}"
 telegraf_hostname:
 telegraf_conf_core_content: |
+  [global_tags]
+    {% for k,v in telegraf_global_tags.items() %}
+    {{k}} = "{{v}}"
+    {% endfor %}
+
   [agent]
     interval = "10s"
     round_interval = true
@@ -79,11 +86,6 @@ telegraf_conf_inputs_content: |
       "dss.*.server.dku.notifications.queue.*.size.*        measurement.dss_id.measurement.measurement.measurement.measurement.queue.size.dimension",
       "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
       "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
-      "dss.*.server.dku.api.internal.calltime.*.*.*         measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_call.dimension",
-      "dss.*.server.dku.api.internal.calltime.*.*.*.*       measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dimension",
-      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*     measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dimension",
-      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*.*   measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dss_api_subcall1.dimension",
-      "dss.*.server.dku.api.internal.calltime.*.*.*.*.*.*.* measurement.dss_id.measurement.measurement.measurement.measurement.field.dss_api.dss_api_kind.dss_api_call.dss_api_topic.dss_api_subcall1.dss_api_subcall2.dimension"
     ]
 telegraf_conf_outputs_content: |
   [[outputs.prometheus_client]]

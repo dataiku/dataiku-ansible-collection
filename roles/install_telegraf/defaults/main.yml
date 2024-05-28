@@ -40,6 +40,7 @@ telegraf_conf_inputs_content: |
   [[inputs.disk]]
     ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "squashfs"]
   [[inputs.diskio]]
+  [[inputs.linux_sysctl_fs]]
   [[inputs.net_response]]
     protocol = "tcp"
     address = "localhost:22"

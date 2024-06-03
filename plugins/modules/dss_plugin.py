@@ -229,7 +229,8 @@ def run_module():
             if not exists:
                 future = None
                 if args.zip_file is not None:
-                    future = client.install_plugin_from_archive(args.zip_file)
+                    with open(args.zip_file,"rb") as f:
+                        future = client.start_install_plugin_from_archive(f)
                 elif args.git_repository_url is not None:
                     future = client.install_plugin_from_git(args.git_repository_url, args.git_checkout,
                                                             args.git_subpath)

@@ -29,6 +29,63 @@
       - dss_plugin.job_results | length > 0
 
 ################################
+# Install DSS plugin from zip
+################################
+- name: create plugins directory
+  become: true
+  become_user: dataiku
+  file:
+    path: /data/dataiku/plugins/
+    state: directory
+
+- name: Download plugin zip archive
+  become: true
+  become_user: dataiku
+  get_url:
+    url: https://github.com/dataiku/dss-plugin-list-folder-contents/archive/refs/tags/v1.0.0.zip
+    dest: /data/dataiku/plugins/dss-plugin-list-folder-contents-v1.0.0.zip
+
+- name: Install plugin from zip
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: list-folder-contents
+    zip_file: /data/dataiku/plugins/dss-plugin-list-folder-contents-v1.0.0.zip
+  register: dss_plugin_zip
+
+- assert:
+    that:
+      - dss_plugin_zip is changed
+      - dss_plugin_zip.message == "CREATED"
+      - dss_plugin_zip.dss_plugin is defined
+      - dss_plugin_zip.job_results is defined
+      - dss_plugin_zip.job_results | length > 0
+
+################################
+# Install DSS plugin git
+################################
+- name: Install plugin from git branch
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: model-stress-test
+    git_repository_url: https://github.com/dataiku/dss-plugin-stress-test-center
+    git_checkout: main
+  register: dss_plugin_git
+
+- assert:
+    that:
+      - dss_plugin_git is changed
+      - dss_plugin_git.message == "CREATED"
+      - dss_plugin_git.dss_plugin is defined
+      - dss_plugin_git.job_results is defined
+      - dss_plugin_git.job_results | length > 0
+
+################################
 # Check module idempotence
 ################################
 - name: Check module idempotence
@@ -88,3 +145,15 @@
       - dss_plugin_delete.dss_plugin == dss_plugin_update.dss_plugin
       - dss_plugin_delete.job_results is defined
       - dss_plugin_delete.job_results | length > 0
+
+- name: Uninstall plugin zip
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: absent
+    plugin_id: list-folder-contents
+
+- name: Uninstall plugin git
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: absent
+    plugin_id: stress-test-center

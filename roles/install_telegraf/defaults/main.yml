@@ -1,9 +1,11 @@
 ---
 telegraf_version: "1.30.1"
 telegraf_conf_dss_datadir:
+telegraf_conf_dss_installdir:
 telegraf_conf_dss_id:
+telegraf_conf_dss_node_type:
 telegraf_global_tags:
-  dss_id: "{{telegraf_conf_dss_id}}"
+  dss_id: "{{ telegraf_conf_dss_id }}"
 telegraf_hostname:
 telegraf_conf_core_content: |
   [global_tags]
@@ -52,26 +54,58 @@ telegraf_conf_inputs_content: |
     total_include = ["cpu"]
   {% endif %}
   [[inputs.procstat]]
-    interval = "20s"
-    pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
+    interval = "30s"
+    pattern = "dataiku-fm-agent"
     tag_with = ["pid"]
     [inputs.procstat.tags]
-      dss_id="{{ telegraf_conf_dss_id }}"
-      dimension="dss-backend"
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dataiku-fm-agent"
   [[inputs.procstat]]
-    interval = "20s"
+    interval = "30s"
+    pattern = "/usr/sbin/nginx.*-c {{ telegraf_conf_dss_datadir }}"
+    tag_with = ["pid"]
+    [inputs.procstat.tags]
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-nginx"
+  [[inputs.procstat]]
+    interval = "30s"
+    pattern = "/bin/postmaster.*-D /data/pgsql/data"
+    tag_with = ["pid"]
+    [inputs.procstat.tags]
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-runtimedb"
+  [[inputs.procstat]]
+    interval = "30s"
+    pattern = "docker-compose.*--file {{ telegraf_conf_dss_installdir }}/story/docker-compose\\.yml"
+    tag_with = ["pid"]
+    [inputs.procstat.tags]
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-story"
+  [[inputs.procstat]]
+    interval = "30s"
+  {% if telegraf_conf_dss_node_type == 'govern' %}  
+    pattern = "Ddku\\.governserver.*-cp {{ telegraf_conf_dss_datadir }}"
+  {% else %}
+    pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
+  {% endif %}
+    tag_with = ["pid"]
+    [inputs.procstat.tags]
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-backend"
+  [[inputs.procstat]]
+    interval = "30s"
     pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
     tag_with = ["pid"]
     [inputs.procstat.tags]
-      dss_id="{{ telegraf_conf_dss_id }}"
-      dimension="dss-fek"
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-fek"
   [[inputs.procstat]]
-    interval = "20s"
+    interval = "30s"
     pattern = "Ddku\\.jek.*-cp {{ telegraf_conf_dss_datadir }}"
     tag_with = ["pid"]
     [inputs.procstat.tags]
-      dss_id="{{ telegraf_conf_dss_id }}"
-      dimension="dss-jek"
+      dss_id = "{{ telegraf_conf_dss_id }}"
+      dimension = "dss-jek"
   [[inputs.socket_listener]]
     service_address = "tcp://127.0.0.1:9109"
     data_format = "graphite"

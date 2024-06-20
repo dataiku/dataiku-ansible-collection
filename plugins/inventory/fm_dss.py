@@ -211,6 +211,7 @@ class InventoryModule(BaseInventoryPlugin):
                         inventory_host.set_variable("ansible_user", instance_ssh_user)
                         dataiku_facts = {
                             "dss": {
+                                "dss_version": instance["imageId"][4:-8],  # matches version in 'dss-<version>-default'
                                 "image_id": instance["imageId"],
                                 "port": "10000",
                                 "datadir": "/data/dataiku/dss_data",

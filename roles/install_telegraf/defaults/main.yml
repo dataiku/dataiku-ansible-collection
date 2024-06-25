@@ -40,6 +40,8 @@ telegraf_conf_inputs_content: |
   [[inputs.net]]
   [[inputs.netstat]]
   [[inputs.cgroup]]
+    paths = ["/sys/fs/cgroup/memory/DSS", "/sys/fs/cgroup/memory/DSS/*", "/sys/fs/cgroup/memory/DSS/*/*"]
+    files = ["memory.*usage*", "memory.limit_in_bytes"]
   [[inputs.disk]]
     ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "squashfs"]
   [[inputs.diskio]]

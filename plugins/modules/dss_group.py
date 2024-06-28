@@ -352,7 +352,7 @@ def run_module():
                 if isinstance(current["ldapGroupNames"], str):
                     dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
             # Else use the DSS version
-            elif not is_version_more_recent(module, dss_version, "12.6"):
+            elif is_version_more_recent(module, "12.6", dss_version):
                 dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
         new_def.update(dict_args)
 

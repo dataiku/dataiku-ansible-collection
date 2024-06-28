@@ -332,22 +332,27 @@ def run_module():
 
         # Sort groups list before comparison as they should be considered sets
         if exists:
-            if is_version_more_recent(module, dss_version, "12.6"):
-                current_ldap_group_names = current.get("ldapGroupNames", "")
-                if current_ldap_group_names:
-                    current["ldapGroupNames"] = ",".join(sorted(current_ldap_group_names.split(",")))
+            current_ldap_group_names = current.get("ldapGroupNames", "")
+            if current_ldap_group_names and isinstance(current_ldap_group_names, str):
+                current["ldapGroupNames"] = ",".join(sorted(current_ldap_group_names.split(",")))
             result["previous_group_def"] = current
         # Build the new user definition
         new_def = copy.deepcopy(current) if exists else {}  # Used for modification
 
         # Transform to camel case
         dict_args = {}
-        if args.ldap_group_names is not None and is_version_more_recent(module, dss_version, "12.6"):
-            dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
         for key, value in module.params.items():
-            if key not in ["connect_to", "host", "port", "api_key", "state", "ldap_group_names"] and value is not None:
+            if key not in ["connect_to", "host", "port", "api_key", "state"] and value is not None:
                 camelKey = re.sub(r"_[a-zA-Z]", lambda x: x.group()[1:].upper(), key)
                 dict_args[camelKey] = value
+        # Transform ldapGroupNames to a list or a string depending on the version of DSS
+        if args.ldap_group_names is not None:
+            if (  # Trust what DSS returns first
+                exists and current.get("ldapGroupNames") is not None and isinstance(current["ldapGroupNames"], str)
+            ) or (  # Else use the DSS version
+                not is_version_more_recent(module, dss_version, "12.6")
+            ):
+                dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
         new_def.update(dict_args)
 
         # Prepare the result for dry-run mode

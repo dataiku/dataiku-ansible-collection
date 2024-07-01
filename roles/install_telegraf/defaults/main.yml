@@ -70,7 +70,11 @@ telegraf_conf_inputs_content: |
       dimension = "dss-nginx"
   [[inputs.procstat]]
     interval = "30s"
+  {% if telegraf_conf_dss_node_type == 'govern' %}
+    pattern = "/bin/postmaster.*-D /data/pgsql-govern/data"
+  {% else %}
     pattern = "/bin/postmaster.*-D /data/pgsql/data"
+  {% endif %}
     tag_with = ["pid"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
@@ -95,6 +99,7 @@ telegraf_conf_inputs_content: |
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-backend"
+  {% if telegraf_conf_dss_node_type != 'govern' %}
   [[inputs.procstat]]
     interval = "30s"
     pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
@@ -125,6 +130,7 @@ telegraf_conf_inputs_content: |
       "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
       "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
     ]
+  {% endif %}
 telegraf_conf_outputs_content: |
   [[outputs.prometheus_client]]
 telegraf_conf_additional_content: ""

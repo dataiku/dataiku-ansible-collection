@@ -195,7 +195,7 @@ class InventoryModule(BaseInventoryPlugin):
                     request.raise_for_status()
                     status = request.json()
 
-                    if status.get("hasPhysicalInstance", False):
+                    if status.get("hasPhysicalInstance", False) and status.get("cloudMachineIsUp", False):
                         self.inventory.add_host(inventory_hostname)
                         inventory_host = self.inventory.hosts[inventory_hostname]
                         vnets_inventory[vnet_id].add_host(inventory_host)

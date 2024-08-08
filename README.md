@@ -33,7 +33,7 @@ You can use a `yaml` file with a content like this:
 ---
 - src: git+https://github.com/dataiku/dataiku-ansible-collection
   name: dataiku-ansible-collection
-  version: master
+  version: main
 ```
 
 Then install it like this:

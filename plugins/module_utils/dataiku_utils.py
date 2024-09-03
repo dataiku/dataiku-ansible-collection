@@ -110,7 +110,7 @@ def get_client_from_parsed_args(module):
     elif args.connect_to and "host" in args.connect_to:
         host = args.connect_to["host"]
 
-    client = DSSClient(f"http://{args.host}:{port}", api_key=api_key)
+    client = DSSClient(f"http://{host}:{port}", api_key=api_key)
 
     return client
 

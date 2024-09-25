@@ -10,6 +10,8 @@ short_description: Creates/get an admin API key onto a DSS datadir.
 
 description:
     This module reads a datadir and returns the port on which the studio is exposed, the admin API Key as well as the datadir path exposed to future usage.
+    Warning: When running this module with `--check` mode activated, it does not return a real api_key, but rather its ID which will not be usable by other modules.
+    Warning: Module is not idempotent.
 
 options:
     datadir:
@@ -111,7 +113,9 @@ def run_module():
         # Create/Get the api key
         changed = False
         api_key = None
+        value_type = None
         exec_name = "apinode-admin" if nodetype == "api" else "dsscli"
+
         api_keys_list = json.loads(
             subprocess.check_output(
                 [
@@ -124,28 +128,51 @@ def run_module():
         )
         for key in api_keys_list:
             if key.get("label", None) == args.api_key_name:
-                api_key = key["key"]
+                if key["key"] == "******":
+                    api_key = key["id"]
+                    value_type = "id"
+                else:
+                    api_key = key["key"]
+                    value_type = "key"
                 if not module.check_mode:
                     logging.info('Found existing API Key labeled "{}".'.format(args.api_key_name))
                 break
-        if api_key is None:
-            if not module.check_mode:
-                command = [
-                    "{}/bin/{}".format(args.datadir, exec_name),
-                    "admin-key-create" if nodetype == "api" else "api-key-create",
-                    "--output",
-                    "json",
-                    "--label",
-                    args.api_key_name,
-                ]
-                if nodetype != "api":
-                    command += ["--admin", "true"]
-                api_keys_list = json.loads(subprocess.check_output(command))
+
+        if not module.check_mode:
+            if api_key is not None:
+                # delete existing key
                 if nodetype == "api":
-                    api_key = api_keys_list["key"]
+                    delete_command = [
+                        "{}/bin/{}".format(args.datadir, exec_name),
+                        "admin-key-delete-by-id" if value_type == "id" else "admin-key-delete",
+                        api_key,
+                    ]
                 else:
-                    api_key = api_keys_list[0]["key"]
-                logging.info('Created new API Key labeled "{}".'.format(args.api_key_name))
+                    delete_command = [
+                        "{}/bin/{}".format(args.datadir, exec_name),
+                        "api-key-delete",
+                        api_key,
+                    ]
+                logging.info('Deleting existing API Key labeled "{}".'.format(args.api_key_name))
+                subprocess.check_output(delete_command)
+
+            # Create new key
+            create_command = [
+                "{}/bin/{}".format(args.datadir, exec_name),
+                "admin-key-create" if nodetype == "api" else "api-key-create",
+                "--output",
+                "json",
+                "--label",
+                args.api_key_name,
+            ]
+            if nodetype != "api":
+                create_command += ["--admin", "true"]
+            api_keys_list = json.loads(subprocess.check_output(create_command))
+            if nodetype == "api":
+                api_key = api_keys_list["key"]
+            else:
+                api_key = api_keys_list[0]["key"]
+            logging.info('Created new API Key labeled "{}".'.format(args.api_key_name))
             changed = True
 
         # Build result

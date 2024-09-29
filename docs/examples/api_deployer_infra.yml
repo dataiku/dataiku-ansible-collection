@@ -2,7 +2,7 @@
 #
 # This playbook deploys a full DSS infrastructure with a Design node,
 # an Automation node also acting as API Model Deployer and two
-# static infrastructures of API nodes wiht 1 node each
+# static infrastructures of API nodes with 1 node each
 #
 # This playbook expects hosts to be refereed in the inventory as
 # design_node, automation_node, api_node_dev, api_node_prod

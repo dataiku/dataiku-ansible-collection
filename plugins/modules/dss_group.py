@@ -336,7 +336,7 @@ def run_module():
         )
     if args.source_type not in [None, "LOCAL", "LDAP", "SAAS", "AZURE_AD", "LOCAL_NO_AUTH", "CUSTOM"]:
         module.fail_json(
-            msg="Invalid value '{}' for source_type : must be either 'LOCAL', 'LDAP' or 'SAAS'".format(args.source_type)
+            msg="Invalid value '{}' for source_type : must be either 'LOCAL', 'LDAP', 'SAAS', 'AZURE_AD', 'LOCAL_NO_AUTH', or 'CUSTOM'".format(args.source_type)
         )
 
     result = dict(changed=False, message="UNCHANGED", )

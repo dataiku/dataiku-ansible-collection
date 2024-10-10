@@ -70,6 +70,24 @@ options:
         description:
             - List of LDAP groups synced with the group
         required: false
+    sso_group_names:
+        type: list
+        elements: str
+        description:
+            - List of SSO groups synced with the group
+        required: false
+    azure_ad_group_names:
+        type: list
+        elements: str
+        description:
+            - List of Azure AD groups synced with the group
+        required: false
+    custom_group_names:
+        type: list
+        elements: str
+        description:
+            - List of custom groups synced with the group
+        required: false
     may_create_authenticated_connections:
         type: bool
         description:
@@ -191,7 +209,10 @@ EXAMPLES = """
     connect_to: "{{ dss_connection_info }}"
     name: dssgroup
     admin: false
-    ldap_group_names: ""
+    ldap_group_names: []
+    sso_group_names: []
+    azure_ad_group_names: []
+    custom_group_names: []
     source_type: LOCAL
     may_create_authenticated_connections: false
     may_create_code_envs: true
@@ -247,8 +268,8 @@ message:
     type: str
 """
 
-import copy
 import re
+import copy
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule
@@ -260,6 +281,12 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dataikuapi_to_path
 )
 
+group_args_to_settings = {
+    "ldap_group_names": "ldapGroupNames",
+    "sso_group_names": "ssoGroupNames",
+    "azure_ad_group_names": "azureADGroupNames",
+    "custom_group_names": "customGroupNames",
+}
 
 def run_module():
     # define the available arguments/parameters that a user can pass to
@@ -271,6 +298,9 @@ def run_module():
         state=dict(type="str", required=False, default="present"),
         admin=dict(type="bool", required=False, default=None),
         ldap_group_names=dict(type="list", required=False, default=None, elements="str"),
+        sso_group_names=dict(type="list", required=False, default=None, elements="str"),
+        azure_ad_group_names=dict(type="list", required=False, default=None, elements="str"),
+        custom_group_names=dict(type="list", required=False, default=None, elements="str"),
         may_create_authenticated_connections=dict(type="bool", required=False, default=None),
         may_create_code_envs=dict(type="bool", required=False, default=None),
         may_create_clusters=dict(type="bool", required=False, default=None),
@@ -302,11 +332,11 @@ def run_module():
     args = MakeNamespace(module.params)
     if args.state not in ["present", "absent"]:
         module.fail_json(
-            msg="Invalid value '{}' for argument state : must be either 'present' or 'absent'".format(args.source_type)
+            msg="Invalid value '{}' for argument state : must be either 'present' or 'absent'".format(args.state)
         )
-    if args.source_type not in [None, "LOCAL", "LDAP", "SAAS"]:
+    if args.source_type not in [None, "LOCAL", "LDAP", "SAAS", "AZURE_AD", "LOCAL_NO_AUTH", "CUSTOM"]:
         module.fail_json(
-            msg="Invalid value '{}' for source_type : must be either 'LOCAL', 'LDAP' or 'SAAS'".format(args.state)
+            msg="Invalid value '{}' for source_type : must be either 'LOCAL', 'LDAP', 'SAAS', 'AZURE_AD', 'LOCAL_NO_AUTH', or 'CUSTOM'".format(args.source_type)
         )
 
     result = dict(changed=False, message="UNCHANGED", )
@@ -332,28 +362,37 @@ def run_module():
 
         # Sort groups list before comparison as they should be considered sets
         if exists:
-            current_ldap_group_names = current.get("ldapGroupNames", "")
-            if current_ldap_group_names and isinstance(current_ldap_group_names, str):
-                current["ldapGroupNames"] = ",".join(sorted(current_ldap_group_names.split(",")))
-            result["previous_group_def"] = current
+            for arg in group_args_to_settings.keys():
+                setting_name = group_args_to_settings[arg]
+                current_group_names = current.get(setting_name, "")
+                if current_group_names and isinstance(current_group_names, str):
+                    current[setting_name] = ",".join(sorted(current_group_names.split(",")))
+                result["previous_group_def"] = current
+
         # Build the new user definition
         new_def = copy.deepcopy(current) if exists else {}  # Used for modification
 
         # Transform to camel case
         dict_args = {}
         for key, value in module.params.items():
-            if key not in ["connect_to", "host", "port", "api_key", "state"] and value is not None:
+            if key not in ["connect_to", "host", "port", "api_key", "state"] + list(group_args_to_settings.keys()) and value is not None:
                 camelKey = re.sub(r"_[a-zA-Z]", lambda x: x.group()[1:].upper(), key)
                 dict_args[camelKey] = value
-        # Transform ldapGroupNames to a list or a string depending on the version of DSS
-        if args.ldap_group_names is not None:
-            # Trust what DSS returns first
-            if exists and current.get("ldapGroupNames") is not None:
-                if isinstance(current["ldapGroupNames"], str):
-                    dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
-            # Else use the DSS version
-            elif is_version_more_recent(module, "12.6", dss_version):
-                dict_args["ldapGroupNames"] = ",".join(sorted(args.ldap_group_names))
+            elif key in group_args_to_settings.keys() and value is not None:
+                dict_args[group_args_to_settings[key]] = value
+
+        # Transform all <x>GroupNames to a list or a string depending on the version of DSS
+        for arg in group_args_to_settings.keys():
+            if getattr(args, arg) is not None:
+                setting_name = group_args_to_settings[arg]
+                # Trust what DSS returns first
+                if exists and current.get(setting_name) is not None:
+                    if isinstance(current[setting_name], str):
+                        dict_args[setting_name] = ",".join(sorted(getattr(args, arg)))
+                # Else use the DSS version
+                elif is_version_more_recent(module, "12.6", dss_version):
+                    dict_args[setting_name] = ",".join(sorted(getattr(args, arg)))
+
         new_def.update(dict_args)
 
         # Prepare the result for dry-run mode

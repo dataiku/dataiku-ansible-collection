@@ -21,7 +21,7 @@ Optionally, you can load collections from a custom path in ansible using the env
 ```ini
 # cat ansible.cfg
 [defaults]
-collections_path = <path to collections>  # note: path can be relative of absolute
+collections_path = <path to collections>  # note: path can be relative or absolute
 ```
 
 ### Force update

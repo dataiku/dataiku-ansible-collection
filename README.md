@@ -16,7 +16,7 @@ ansible-galaxy collection install git+https://github.com/dataiku/dataiku-ansible
  ```
 
 To install in a custom path, you can set the `-p|--collections-path` flag.
-Optionally, you can load collections from a custom path in ansible using the environement variable `ANSIBLE_COLLECTIONS_PATH` or by setting in `ansible.cfg`
+Optionally, you can load collections from a custom path in ansible using the environment variable `ANSIBLE_COLLECTIONS_PATH` or by setting `collections_path` in `ansible.cfg`
 
 ```ini
 # cat ansible.cfg

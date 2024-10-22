@@ -1,7 +1,7 @@
 Dataiku DSS collection
 ===================
 
-This collection packages custom modules to administrate Dataiku Data Science Studio platforms.
+This collection packages custom modules and roles to administrate Dataiku Data Science Studio platforms.
 
 
 Installation
@@ -9,17 +9,20 @@ Installation
 
 ### Basic
 
-If the first directory of your roles path is writable, just use:
+To install the collection in your default collections path:
 
  ```
 ansible-galaxy collection install git+https://github.com/dataiku/dataiku-ansible-collection
  ```
 
-Or specify the path in which you want the role to be installed:
+To install in a custom path, you can set the `-p|--collections-path` flag.
+Optionally, you can load collections from a custom path in ansible using the environement variable `ANSIBLE_COLLECTIONS_PATH` or by setting in `ansible.cfg`
 
- ```
-ansible-galaxy collection install git+https://github.com/dataiku/dataiku-ansible-collection
- ```
+```ini
+# cat ansible.cfg
+[defaults]
+collections_path = <path to collections>  # note: path can be relative of absolute
+```
 
 ### Force update
 
@@ -30,23 +33,24 @@ If the collection already exists, `ansible-galaxy` will not update it unless the
 You can use a `yaml` file with a content like this:
 
 ```YAML
+# cat requirements.yaml
 ---
-- src: git+https://github.com/dataiku/dataiku-ansible-collection
-  name: dataiku-ansible-collection
-  version: main
+collections:
+  - source: https://github.com/dataiku/dataiku-ansible-collection
+    name: dataiku.dss
+    type: git
+    version: main
 ```
 
 Then install it like this:
 
 ```bash
-ansible-galaxy install -r /path/to/your/file.yml
+ansible-galaxy install -r /path/to/your/requirements.yaml
 ```
 
 This allows you to:
 - Force a specific version
 - Rename the role on the fly
-
-
 
 Basic Usage
 ----------------
@@ -54,6 +58,8 @@ Basic Usage
 ## Using Modules
 
 ```YAML
+# cat ansible-playbook.yml
+---
 - hosts: servers
   become: true
   become_user: dataiku
@@ -99,6 +105,8 @@ Basic Usage
 
 Using Roles from a playbook
 ```YAML
+# cat ansible-playbook.yml
+---
 - hosts: servers
   become: true
   roles:
@@ -115,6 +123,8 @@ Using Roles from a playbook
 
 Using Roles from a task
 ```YAML
+# cat ansible-playbook.yml
+---
 tasks:
   - import_role:
       name: dataiku.dss.install_telegraf
@@ -138,6 +148,8 @@ In a collection, modules are referenced as `collection_namespace.collection_name
 
 Therefore, the module usage
 ```YAML
+# cat ansible-playbook.yml
+---
 - hosts: servers
   become: true
   become_user: dataiku
@@ -150,6 +162,8 @@ Therefore, the module usage
 
 simply becomes :
 ```YAML
+# cat ansible-playbook.yml
+---
 - hosts: servers
   become: true
   become_user: dataiku
@@ -159,5 +173,3 @@ simply becomes :
         api_key_name: myadminkey
       register: dss_connection_info
 ```
-
-Alternatively, the environment variable `ANSIBLE_COLLECTION_PATH` can be leveraged so that ansible auto discovers the right modules

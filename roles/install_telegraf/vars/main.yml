@@ -1,4 +1,5 @@
 ---
+telegraf_conf_secret_store_name: telegraf_dss_store
 telegraf_internal_confs:
   - key: core
     value: "{{ telegraf_conf_core_content }}"

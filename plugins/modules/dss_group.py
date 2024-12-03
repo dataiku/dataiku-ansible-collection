@@ -93,6 +93,21 @@ options:
         description:
             - Whether the group allows to create authenticated connections
         required: false
+    may_create_code_studio_templates:
+        type: bool
+        description:
+            - Whether the group allows to create code studio templates
+        required: false
+    may_create_data_collections:
+        type: bool
+        description:
+            - Whether the group allows to create data collections
+        required: false
+    may_create_workspaces:
+        type: bool
+        description:
+            - Whether the group allows to create workspaces
+        required: false
     may_create_projects:
         type: bool
         description:
@@ -158,10 +173,30 @@ options:
         description:
             - Whether the group allows to manage clusters
         required: false
+    may_manage_code_studio_templates:
+        type: bool
+        description:
+            - Whether the group allows to manage code studio templates
+        required: false
+    may_manage_feature_store:
+        type: bool
+        description:
+            - Whether the group allows to manage feature store
+        required: false
     may_manage_UDM:
         type: bool
         description:
             - Whether the group allows to manage UDMs
+        required: false
+    may_publish_to_data_collections:
+        type: bool
+        description:
+            - Whether the group allows to publish to data collections
+        required: false
+    may_share_to_workspaces:
+        type: bool
+        description:
+            - Whether the group allows to share to workspaces
         required: false
     may_view_indexed_hive_connections:
         type: bool
@@ -303,7 +338,9 @@ def run_module():
         custom_group_names=dict(type="list", required=False, default=None, elements="str"),
         may_create_authenticated_connections=dict(type="bool", required=False, default=None),
         may_create_code_envs=dict(type="bool", required=False, default=None),
+        may_create_code_studio_templates=dict(type="bool", required=False, default=None),
         may_create_clusters=dict(type="bool", required=False, default=None),
+        may_create_data_collections=dict(type="bool", required=False, default=None),
         may_create_projects=dict(type="bool", required=False, default=None),
         may_create_projects_from_macros=dict(type="bool", required=False, default=None),
         may_create_projects_from_templates=dict(type="bool", required=False, default=None),
@@ -311,11 +348,16 @@ def run_module():
         may_create_published_API_services=dict(type="bool", required=False, default=None),
         may_create_published_projects=dict(type="bool", required=False, default=None),
         may_create_active_web_content=dict(type="bool", required=False, default=None),
+        may_create_workspaces=dict(type="bool", required=False, default=None),
         may_develop_plugins=dict(type="bool", required=False, default=None),
         may_edit_lib_folders=dict(type="bool", required=False, default=None),
         may_manage_code_envs=dict(type="bool", required=False, default=None),
+        may_manage_code_studio_templates=dict(type="bool", required=False, default=None),
         may_manage_clusters=dict(type="bool", required=False, default=None),
+        may_manage_feature_store=dict(type="bool", required=False, default=None),
         may_manage_UDM=dict(type="bool", required=False, default=None),
+        may_publish_to_data_collections=dict(type="bool", required=False, default=None),
+        may_share_to_workspaces=dict(type="bool", required=False, default=None),
         may_view_indexed_hive_connections=dict(type="bool", required=False, default=None),
         may_write_safe_code=dict(type="bool", required=False, default=True),
         may_write_unsafe_code=dict(type="bool", required=False, default=None),

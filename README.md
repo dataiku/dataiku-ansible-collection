@@ -114,7 +114,7 @@ Using Roles from a playbook
       vars:
         telegraf_conf_dss_datadir: /data/dataiku/dss_data
         telegraf_conf_dss_id: test-collections
-        telegraph_hostname: dss.example.com
+        telegraf_hostname: dss.example.com
     
     - name: dataiku.dss.install_tesseract
       vars:
@@ -131,7 +131,7 @@ tasks:
     vars:
       telegraf_conf_dss_datadir: /data/dataiku/dss_data
       telegraf_conf_dss_id: test-collections
-      telegraph_hostname: dss.example.com
+      telegraf_hostname: dss.example.com
 
   - import_role:
       name: dataiku.dss.install_tesseract

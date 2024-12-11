@@ -46,11 +46,22 @@
       CapabilityBoundingSet = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
       AmbientCapabilities = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
       NoNewPrivileges = true
+      EnvironmentFile=-/etc/telegraf/telegraf.secrets
   notify:
   - daemon reload
   - restart telegraf
 
-- name: Create default telegraf configuration drop-in
+- name: Override telegraf conf
+  become: true
+  copy:
+    content: "{{ telegraf_conf_core_content }}"
+    dest: "/etc/telegraf/telegraf.conf"
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart telegraf
+
+- name: Create telegraf configuration drop-ins
   become: true
   copy:
     content: "{{ item.value }}"
@@ -60,6 +71,27 @@
     group: root
   notify: restart telegraf
   loop: "{{ telegraf_internal_confs }}"
+
+- name: Configure telegraf authentication to DSS
+  when: telegraf_conf_use_legacy_graphite | bool is false
+  block:
+    - name: Create DSS api key
+      become: true
+      become_user: dataiku
+      dataiku.dss.dss_get_credentials:
+        datadir: "{{ telegraf_conf_dss_datadir }}"
+        api_key_name: telegraf-monitoring
+      register: dss_credentials
+
+    - name: Store DSS credentials in telegraf secret file
+      become: true
+      no_log: true
+      copy:
+        content: "DSS_API_KEY={{ dss_credentials['api_key'] }}"
+        dest: /etc/telegraf/telegraf.secrets
+        mode: 0600
+        owner: root
+        group: root
 
 - meta: flush_handlers
 

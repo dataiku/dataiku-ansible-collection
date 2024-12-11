@@ -5,6 +5,7 @@ telegraf_conf_dss_installdir:
 telegraf_conf_dss_id:
 telegraf_conf_dss_node_type:
 telegraf_conf_dss_story_enabled: false
+telegraf_conf_use_legacy_graphite: true
 telegraf_global_tags:
   dss_id: "{{ telegraf_conf_dss_id }}"
 telegraf_hostname:
@@ -116,6 +117,7 @@ telegraf_conf_inputs_content: |
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-jek"
+  {% if telegraf_conf_use_legacy_graphite | bool is true %}
   [[inputs.socket_listener]]
     service_address = "tcp://127.0.0.1:9109"
     data_format = "graphite"
@@ -132,6 +134,11 @@ telegraf_conf_inputs_content: |
       "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
       "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
     ]
+  {% else %}
+  [[inputs.prometheus]]
+    urls = ["http://localhost:10000/public/api/metrics-prometheus"]
+    username = "${DSS_API_KEY}"
+  {% endif %}
   {% endif %}
 telegraf_conf_outputs_content: |
   [[outputs.prometheus_client]]

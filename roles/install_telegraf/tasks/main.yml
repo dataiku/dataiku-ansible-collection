@@ -85,6 +85,7 @@
 
     - name: Store DSS credentials in telegraf secret file
       become: true
+      no_log: true
       copy:
         content: "DSS_API_KEY={{ dss_credentials['api_key'] }}"
         dest: /etc/telegraf/telegraf.secrets

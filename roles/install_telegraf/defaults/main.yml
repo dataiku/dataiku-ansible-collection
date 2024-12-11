@@ -137,7 +137,7 @@ telegraf_conf_inputs_content: |
   {% else %}
   [[inputs.prometheus]]
     urls = ["http://localhost:10000/public/api/metrics-prometheus"]
-    username = ${DSS_API_KEY}
+    username = "${DSS_API_KEY}"
   {% endif %}
   {% endif %}
 telegraf_conf_outputs_content: |

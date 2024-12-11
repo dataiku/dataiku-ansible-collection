@@ -46,11 +46,22 @@
       CapabilityBoundingSet = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
       AmbientCapabilities = CAP_DAC_READ_SEARCH CAP_SYS_PTRACE
       NoNewPrivileges = true
+      EnvironmentFile=-/etc/telegraf/telegraf.secrets
   notify:
   - daemon reload
   - restart telegraf
 
-- name: Create default telegraf configuration drop-in
+- name: Override telegraf conf
+  become: true
+  copy:
+    content: "{{ telegraf_conf_core_content }}"
+    dest: "/etc/telegraf/telegraf.conf"
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart telegraf
+
+- name: Create telegraf configuration drop-ins
   become: true
   copy:
     content: "{{ item.value }}"
@@ -61,17 +72,8 @@
   notify: restart telegraf
   loop: "{{ telegraf_internal_confs }}"
 
-- meta: flush_handlers
-
-- name: Enable telegraf service
-  become: true
-  systemd:
-    name: telegraf
-    enabled: true
-    state: started
-
 - name: Configure telegraf authentication to DSS
-  when: telegraf_conf_use_legacy_graphite is false
+  when: telegraf_conf_use_legacy_graphite | bool is false
   block:
     - name: Create DSS api key
       become: true
@@ -81,8 +83,20 @@
         api_key_name: telegraf-monitoring
       register: dss_credentials
 
-    - name: Store DSS credentials in telegraf secret store
+    - name: Store DSS credentials in telegraf secret file
       become: true
-      become_user: telegraf
-      # Note: Idempotency is not required as dataiku.dss.dss_get_credentials is not idempotent itself
-      command: "telegraf secrets set {{ telegraf_conf_secret_store_name }} dss_api_key {{ dss_credentials['api_key'] }}"
+      copy:
+        content: "DSS_API_KEY={{ dss_credentials['api_key'] }}"
+        dest: /etc/telegraf/telegraf.secrets
+        mode: 0600
+        owner: root
+        group: root
+
+- meta: flush_handlers
+
+- name: Enable telegraf service
+  become: true
+  systemd:
+    name: telegraf
+    enabled: true
+    state: started

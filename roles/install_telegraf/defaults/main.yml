@@ -26,12 +26,6 @@ telegraf_conf_core_content: |
     precision = "0s"
     hostname = "{{ telegraf_hostname | default(hostname) }}"
     omit_hostname = false
-
-  {% if telegraf_conf_use_legacy_graphite is false %}
-  [[secretstores.os]]
-    id = "{{ telegraf_conf_secret_store_name }}"
-    keyring = "telegraf"
-  {% endif %}
 telegraf_conf_inputs_content: |
   [[inputs.cpu]]
     percpu = true
@@ -123,7 +117,7 @@ telegraf_conf_inputs_content: |
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-jek"
-  {% if telegraf_conf_use_legacy_graphite %}
+  {% if telegraf_conf_use_legacy_graphite | bool is true %}
   [[inputs.socket_listener]]
     service_address = "tcp://127.0.0.1:9109"
     data_format = "graphite"
@@ -143,7 +137,7 @@ telegraf_conf_inputs_content: |
   {% else %}
   [[inputs.prometheus]]
     urls = ["http://localhost:10000/public/api/metrics-prometheus"]
-    username = "{% raw %}@{{% endraw %}{{ telegraf_conf_secret_store_name }}:dss_api_key{% raw %}}{% endraw %}"
+    username = ${DSS_API_KEY}
   {% endif %}
   {% endif %}
 telegraf_conf_outputs_content: |

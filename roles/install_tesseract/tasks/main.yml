@@ -1,5 +1,7 @@
 ---
 - name: install requirements
+  become: true
+  become_user: root
   package:
     name: "{{ item }}"
     state: present
@@ -84,7 +86,6 @@
     file:
       path: "{{ leptonica_unarchive_prefix }}"
       state: absent
-
 
 - name: install Tessdata
   when: >

@@ -7,7 +7,7 @@
 
 - name: Add telegraf repository
   become: true
-  yum_repository:
+  ansible.builtin.yum_repository:
     state: present
     name: influxdb
     description: InfluxDB Repository - RHEL $releasever
@@ -16,12 +16,20 @@
 
 - name: Update yum cache
   become: true
-  yum:
+  ansible.builtin.yum:
     update_cache: yes
   when: telegraf_repo.changed
 
-- name: Install telegraf
+- name: Install telegraf latest version
   become: true
-  yum:
+  ansible.builtin.yum:
     name: telegraf
     state: present
+  when: telegraf_version == None
+
+- name: Install telegraf specific version
+  become: true
+  ansible.builtin.yum:
+    name: telegraf-{{ telegraf_version }}
+    state: present
+  when: telegraf_version != None

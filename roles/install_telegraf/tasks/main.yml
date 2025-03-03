@@ -1,29 +1,29 @@
 ---
 - name: Create download dir
   become: true
-  file:
+  ansible.builtin.file:
     path: /opt/telegraf
     state: directory
-    mode: 0755
+    mode: "755"
 
 - name: Install telegraf for ReadHat or AlmaLinux
-  include_tasks: "install_telegraf_rpm.yml"
+  ansible.builtin.include_tasks: "install_telegraf_rpm.yml"
   when: ansible_os_family == 'RedHat'
 
 - name: Install telegraf for Debian, Ubuntu
-  include_tasks: "install_telegraf_deb.yml"
+  ansible.builtin.include_tasks: "install_telegraf_deb.yml"
   when: ansible_os_family == 'Debian'
 
 - name: Check if docker is installed
   become: true
-  command: command -v docker
+  ansible.builtin.command: command -v docker
   register: docker_installed
   ignore_errors: true
   changed_when: false
 
 - name: Allow telegraf to docker
   become: true
-  user:
+  ansible.builtin.user:
     name: telegraf
     groups: [docker]
     append: true
@@ -32,14 +32,14 @@
 
 - name: Create telegraf systemd drop-in directory
   become: true
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/system/telegraf.service.d
     state: directory
-    mode: 0755
+    mode: "755"
 
 - name: Create telegraf systemd drop-in
   become: true
-  copy:
+  ansible.builtin.copy:
     dest: /etc/systemd/system/telegraf.service.d/override.conf
     content: |
       [Service]
@@ -53,20 +53,20 @@
 
 - name: Override telegraf conf
   become: true
-  copy:
+  ansible.builtin.copy:
     content: "{{ telegraf_conf_core_content }}"
     dest: "/etc/telegraf/telegraf.conf"
-    mode: 0644
+    mode: "644"
     owner: root
     group: root
   notify: restart telegraf
 
 - name: Create telegraf configuration drop-ins
   become: true
-  copy:
+  ansible.builtin.copy:
     content: "{{ item.value }}"
     dest: "/etc/telegraf/telegraf.d/dss-{{ item.key }}.conf"
-    mode: 0644
+    mode: "644"
     owner: root
     group: root
   notify: restart telegraf
@@ -86,10 +86,10 @@
     - name: Store DSS credentials in telegraf secret file
       become: true
       no_log: true
-      copy:
+      ansible.builtin.copy:
         content: "DSS_API_KEY={{ dss_credentials['api_key'] }}"
         dest: /etc/telegraf/telegraf.secrets
-        mode: 0600
+        mode: "600"
         owner: root
         group: root
 
@@ -97,7 +97,7 @@
 
 - name: Enable telegraf service
   become: true
-  systemd:
+  ansible.builtin.systemd:
     name: telegraf
     enabled: true
     state: started

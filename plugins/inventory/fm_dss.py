@@ -21,6 +21,8 @@ description: |
         access_type: public_ip
         ssh:
           user: <DSS_SSH_USER>
+        tags:
+          - production
       api_key:
         file: "~/.config/dataiku/<NAME>.json"
         ssh_auto_create: true
@@ -144,6 +146,7 @@ class InventoryModule(BaseInventoryPlugin):
                 instances_config = fleet_manager["instances"]
                 network_access = instances_config.get("access_type", "public_ip")
                 instance_ssh_user = instances_config["ssh"]["user"]
+                required_fm_tags = instances_config.get("required_fm_tags",[])
 
                 # Get vnets
                 request = session.request(
@@ -186,6 +189,14 @@ class InventoryModule(BaseInventoryPlugin):
                     settings_id = instance["instanceSettingsTemplateId"]
                     settings_name = instance["instanceSettingsTemplateLabel"]
                     inventory_hostname = f"fm-{fm_id}-{tenant_id}-{node_id}"
+
+                    # Check tags
+                    if not set(required_fm_tags).issubset(set(instance["fmTags"])):
+                        logger.info(
+                            f"Instance {inventory_hostname} skipped, not matching required tags."
+                        )
+                        continue
+
 
                     # Physical instance info
                     request = session.request(

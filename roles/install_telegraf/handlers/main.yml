@@ -1,11 +1,11 @@
 ---
 - name: restart telegraf
   become: true
-  systemd:
+  ansible.builtin.systemd:
     name: telegraf
     state: restarted
 
 - name: daemon reload
   become: true
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: true

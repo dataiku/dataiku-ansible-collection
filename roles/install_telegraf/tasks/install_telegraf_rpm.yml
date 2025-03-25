@@ -1,27 +1,43 @@
 ---
-- name: Add telegraf repository key
-  become: true
-  rpm_key:
-    state: present
-    key: https://repos.influxdata.com/influxdata-archive_compat.key
+- name: Add the InfluxData GPG key
+  ansible.builtin.shell: |
+    curl --silent --location -O \
+    https://repos.influxdata.com/influxdata-archive_compat.key \
+    && echo "393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c  influxdata-archive_compat.key" \
+    | sha256sum --check - && cat influxdata-archive_compat.key \
+    | gpg --dearmor \
+    | tee /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata > /dev/null
+  args:
+    creates: /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata
 
 - name: Add telegraf repository
   become: true
-  yum_repository:
+  ansible.builtin.yum_repository:
     state: present
     name: influxdb
     description: InfluxDB Repository - RHEL $releasever
     baseurl: https://repos.influxdata.com/rhel/$releasever/$basearch/stable
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata
+    gpgcheck: true
+    enabled: true
   register: telegraf_repo
 
 - name: Update yum cache
   become: true
-  yum:
+  ansible.builtin.yum:
     update_cache: yes
   when: telegraf_repo.changed
 
-- name: Install telegraf
+- name: Install telegraf latest version
   become: true
-  yum:
+  ansible.builtin.yum:
     name: telegraf
     state: present
+  when: telegraf_version == None
+
+- name: Install telegraf specific version
+  become: true
+  ansible.builtin.yum:
+    name: telegraf-{{ telegraf_version }}
+    state: present
+  when: telegraf_version != None

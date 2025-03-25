@@ -1,5 +1,5 @@
 ---
-telegraf_version: "1.30.1"
+telegraf_version:
 telegraf_conf_dss_datadir:
 telegraf_conf_dss_installdir:
 telegraf_conf_dss_id:
@@ -24,8 +24,12 @@ telegraf_conf_core_content: |
     flush_interval = "10s"
     flush_jitter = "0s"
     precision = "0s"
-    hostname = "{{ telegraf_hostname | default(hostname) }}"
+  {% if telegraf_hostname %}
+    hostname = "{{ telegraf_hostname }}"
     omit_hostname = false
+  {% else %}
+    omit_hostname = true
+  {% endif %}
 telegraf_conf_inputs_content: |
   [[inputs.cpu]]
     percpu = true

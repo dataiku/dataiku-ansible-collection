@@ -1,7 +1,7 @@
 ---
 - name: Add telegraf repository key
   become: true
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://repos.influxdata.com/influxdata-archive_compat.key
     keyring: /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg
     state: present
@@ -9,7 +9,7 @@
 - name: Add telegraf repository
   become: true
   # force signing key due to https://github.com/influxdata/telegraf/issues/12542
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/{{ ansible_distribution | lower }} stable main"
     state: present
     filename: telegraf
@@ -17,12 +17,20 @@
 
 - name: Update cache
   become: true
-  apt:
+  ansible.builtin.apt:
     update_cache: yes
   when: repo_telegraf.changed
 
-- name: Install telegraf
+- name: Install telegraf latest version
   become: true
-  apt:
+  ansible.builtin.apt:
     name: telegraf
     state: present
+  when: telegraf_version == None
+
+- name: Install telegraf specific version
+  become: true
+  ansible.builtin.apt:
+    name: "telegraf={{ telegraf_version }}"
+    state: present
+  when: telegraf_version != None

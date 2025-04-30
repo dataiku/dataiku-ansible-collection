@@ -1,6 +1,6 @@
 ---
 - name: Find output directory
-  find:
+  ansible.builtin.find:
     path: "{{ archive_output }}"
     file_type: directory
   register: unarchive_directory
@@ -9,13 +9,13 @@
   environment: "{{ compile_env_vars }}"
   args:
     chdir: "{{ (unarchive_directory.files | first).path }}"
-  command: ./autogen.sh
+  ansible.builtin.command: ./autogen.sh
 
 - name: Configure compilation
   environment: "{{ compile_env_vars }}"
   args:
     chdir: "{{ (unarchive_directory.files | first).path }}"
-  command: "./configure --prefix {{ compile_prefix }} {{ compile_options }}"
+  ansible.builtin.command: "./configure --prefix {{ compile_prefix }} {{ compile_options }}"
 
 - name: Make compiler
   environment: "{{ compile_env_vars }}"

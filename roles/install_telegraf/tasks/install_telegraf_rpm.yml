@@ -1,5 +1,6 @@
 ---
 - name: Add the InfluxData GPG key
+  become: true
   ansible.builtin.shell: |
     curl --silent --location -O \
     https://repos.influxdata.com/influxdata-archive_compat.key \

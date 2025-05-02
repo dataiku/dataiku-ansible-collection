@@ -2,46 +2,46 @@
 - name: install requirements
   become: true
   become_user: root
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   loop:
     - libwebp-devel
 
 - name: Check Leptonica previous installation
-  stat:
+  ansible.builtin.stat:
     path: "{{ leptonica_output_dir }}/leptonica-install.txt"
   register: is_leptonica_already_installed
   tags: leptonica
 
 - name: Check Leptonica previous install information
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ leptonica_output_dir }}/leptonica-install.txt"
   when: is_leptonica_already_installed.stat.exists
   register: previous_leptonica_install
   tags: leptonica
 
 - name: Check Tesseract previous installation
-  stat:
+  ansible.builtin.stat:
     path: "{{ tesseract_output_dir }}/tesseract-install.txt"
   register: is_tesseract_already_installed
   tags: tesseract
 
 - name: Check Tesseract previous install information
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ tesseract_output_dir }}/tesseract-install.txt"
   when: is_tesseract_already_installed.stat.exists
   register: previous_tesseract_install
   tags: tesseract
 
 - name: Check Tessdata previous installation
-  stat:
+  ansible.builtin.stat:
     path: "{{ tessdata_output_dir }}/tessdata-install.txt"
   register: is_tessdata_already_installed
   tags: tessdata
 
 - name: Check Tessdata previous install information
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ tessdata_output_dir }}/tessdata-install.txt"
   when: is_tessdata_already_installed.stat.exists
   register: previous_tessdata_install
@@ -55,7 +55,7 @@
   tags: leptonica
   block:
   - name: Create Leptonica output directory
-    file:
+    ansible.builtin.file:
       path: "{{ item }}"
       state: directory
     loop:
@@ -63,27 +63,27 @@
       - "{{ leptonica_output_dir }}"
 
   - name: Unarchive Leptonica
-    unarchive:
+    ansible.builtin.unarchive:
       src: "{{ leptonica_archive_source }}"
       dest: "{{ leptonica_unarchive_prefix }}"
       extra_opts: "{{ leptonica_unarchive_options }}"
       remote_src: "{{ leptonica_archive_source is url }}"
 
   - name: Compile Leptonica sources
-    include_tasks: "compile_sources.yml"
+    ansible.builtin.include_tasks: "compile_sources.yml"
     vars:
       compile_env_vars: "{{ leptonica_compile_env_vars }}"
       compile_prefix: "{{ leptonica_output_dir }}"
       compile_options: "{{ leptonica_compile_options }}"
 
   - name: Create Leptonica state file
-    copy:
+    ansible.builtin.copy:
       dest: "{{ leptonica_output_dir }}/leptonica-install.txt"
       content: "{{ leptonica_archive_source }}"
 
   - name: Remove temporary archive directory
     when: not keep_tmp_directory
-    file:
+    ansible.builtin.file:
       path: "{{ leptonica_unarchive_prefix }}"
       state: absent
 
@@ -95,19 +95,19 @@
   tags: tessdata
   block:
     - name: Create Tessdata output directory
-      file:
+      ansible.builtin.file:
         path: "{{ tessdata_output_dir }}"
         state: directory
 
     - name: Unarchive Tessdata
-      unarchive:
+      ansible.builtin.unarchive:
         src: "{{ tessdata_archive_source }}"
         dest: "{{ tessdata_output_dir }}"
         extra_opts: "{{ tessdata_unarchive_options }}"
         remote_src: "{{ tessdata_archive_source is url }}"
 
     - name: Create Tessdata state file
-      copy:
+      ansible.builtin.copy:
         dest: "{{ tessdata_output_dir }}/tessdata-install.txt"
         content: "{{ tessdata_archive_source }}"
 
@@ -119,7 +119,7 @@
   tags: tesseract
   block:
   - name: Create Tesseract output directory
-    file:
+    ansible.builtin.file:
       path: "{{ item }}"
       state: directory
     loop:
@@ -127,26 +127,26 @@
       - "{{ tesseract_output_dir }}"
 
   - name: Unarchive Tesseract
-    unarchive:
+    ansible.builtin.unarchive:
       src: "{{ tesseract_archive_source }}"
       dest: "{{ tesseract_unarchive_prefix }}"
       extra_opts: "{{ tesseract_unarchive_options }}"
       remote_src: "{{ tesseract_archive_source is url }}"
 
   - name: Compile Tesseract sources
-    include_tasks: "compile_sources.yml"
+    ansible.builtin.include_tasks: "compile_sources.yml"
     vars:
       compile_env_vars: "{{ tesseract_compile_env_vars }}"
       compile_prefix: "{{ tesseract_output_dir }}"
       compile_options: "{{ tesseract_compile_options }}"
 
   - name: Create Tesseract state file
-    copy:
+    ansible.builtin.copy:
       dest: "{{ tesseract_output_dir }}/tesseract-install.txt"
       content: "{{ tesseract_archive_source }}"
 
   - name: Remove temporary archive directory
     when: not keep_tmp_directory
-    file:
+    ansible.builtin.file:
       path: "{{ tesseract_unarchive_prefix }}"
       state: absent

@@ -45,8 +45,8 @@ telegraf_conf_inputs_content: |
   [[inputs.net]]
   [[inputs.netstat]]
   [[inputs.cgroup]]
-    paths = ["/sys/fs/cgroup/memory/DSS", "/sys/fs/cgroup/memory/DSS/*", "/sys/fs/cgroup/memory/DSS/*/*"]
-    files = ["memory.*usage*", "memory.limit_in_bytes"]
+    paths = {{ telegraf_cgroup_paths }}
+    files = {{ telegraf_cgroup_files }}
   [[inputs.disk]]
     ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "squashfs"]
   [[inputs.diskio]]
@@ -147,3 +147,27 @@ telegraf_conf_inputs_content: |
 telegraf_conf_outputs_content: |
   [[outputs.prometheus_client]]
 telegraf_conf_additional_content: ""
+telegraf_cgroupv1_enabled: true
+telegraf_cgroupv2_enabled: true
+telegraf_cgroupv1_paths:
+  - "/sys/fs/cgroup/memory/DSS"
+  - "/sys/fs/cgroup/memory/DSS/*"
+  - "/sys/fs/cgroup/memory/DSS/*/*"
+  - "/sys/fs/cgroup/cpu/DSS"
+  - "/sys/fs/cgroup/cpu/DSS/*"
+  - "/sys/fs/cgroup/cpu/DSS/*/*"
+telegraf_cgroupv1_files:
+  - "memory.*usage*"
+  - "memory.limit_in_bytes"
+  - "cpuacct.*usage*"
+  - "cpu.shares"
+telegraf_cgroupv2_paths:
+  - "/sys/fs/cgroup/DSS"
+  - "/sys/fs/cgroup/DSS/*"
+  - "/sys/fs/cgroup/DSS/*/*"
+telegraf_cgroupv2_files:
+  - "memory.max"
+  - "memory.current"
+  - "cpu.weight"
+  - "cpu.max"
+  - "cpu.stat"

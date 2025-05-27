@@ -6,3 +6,13 @@ telegraf_internal_confs:
     value: "{{ telegraf_conf_outputs_content }}"
   - key: additional
     value: "{{ telegraf_conf_additional_content }}"
+telegraf_cgroup_paths: >-
+  {{
+    (telegraf_cgroupv1_enabled | bool | ternary(telegraf_cgroupv1_paths, []) ) +
+    (telegraf_cgroupv2_enabled | bool | ternary(telegraf_cgroupv2_paths, []) )
+  }}
+telegraf_cgroup_files: >-
+  {{
+  (telegraf_cgroupv1_enabled | bool | ternary(telegraf_cgroupv1_files, []) ) +
+  (telegraf_cgroupv2_enabled | bool | ternary(telegraf_cgroupv2_files, []) )
+  }}

@@ -56,9 +56,7 @@ telegraf_conf_inputs_content: |
     address = "localhost:22"
   {% if docker_installed.rc == 0 %}
   [[inputs.docker]]
-    perdevice = false
     perdevice_include = ["cpu", "network"]
-    total = true
     total_include = ["cpu"]
   {% endif %}
   [[inputs.procstat]]

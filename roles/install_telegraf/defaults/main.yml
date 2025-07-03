@@ -78,9 +78,9 @@ telegraf_conf_inputs_content: |
   [[inputs.procstat]]
     interval = "30s"
   {% if telegraf_conf_dss_node_type == 'govern' %}
-    pattern = "/bin/postmaster.*-D /data/pgsql-govern/data"
+    pattern = ".*/bin/post.*-D /data/pgsql-govern/data"
   {% else %}
-    pattern = "/bin/postmaster.*-D /data/pgsql/data"
+    pattern = ".*/bin/post.*-D /data/pgsql/data"
   {% endif %}
     tag_with = ["pid"]
     [inputs.procstat.tags]

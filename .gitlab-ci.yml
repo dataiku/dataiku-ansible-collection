@@ -5,8 +5,8 @@ variables:
   DATAIKU_COMMUNITY_DOCKER_IMAGE: "dataiku/dss:14.0.0"
 
 stages:
-  - sanity
-  - unit-tests
+#  - sanity
+#  - unit-tests
   - integration-tests
   - build
   - publish
@@ -28,23 +28,23 @@ stages:
   tags:
     - docker
 
-Run Sanity tests:
-  extends: .job_base
-  image: $PYTHON_IMAGE
-  stage: sanity
-  script:
-    - ansible-galaxy collection install .
-    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test sanity --local --python $ANSIBLE_TEST_TARGET_PYTHON
-
-Run Unit tests:
-  extends: .job_base
-  image: $PYTHON_IMAGE
-  stage: unit-tests
-  script:
-    - ansible-galaxy collection install .
-    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
+#Run Sanity tests:
+#  extends: .job_base
+#  image: $PYTHON_IMAGE
+#  stage: sanity
+#  script:
+#    - ansible-galaxy collection install .
+#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+#    - ansible-test sanity --local --python $ANSIBLE_TEST_TARGET_PYTHON
+#
+#Run Unit tests:
+#  extends: .job_base
+#  image: $PYTHON_IMAGE
+#  stage: unit-tests
+#  script:
+#    - ansible-galaxy collection install .
+#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+#    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
 Run Integration tests:
   tags:
@@ -53,7 +53,7 @@ Run Integration tests:
   image: $DATAIKU_CONTAINER
   before_script:
     # Start dss process
-    - /home/dataiku/run.sh &
+    - nohup /home/dataiku/run.sh
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
   script:

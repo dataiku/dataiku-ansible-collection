@@ -64,7 +64,7 @@ def test_update():
 
     updated_dict = update(input_dict, update_keys)
 
-    return updated_dict == expected
+    assert updated_dict == expected
 
 
 @pytest.mark.parametrize("test_input, expected", [

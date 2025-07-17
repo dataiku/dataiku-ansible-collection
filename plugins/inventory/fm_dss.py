@@ -35,14 +35,21 @@ author:
     - Jean-Bernard Jansen (jean-bernard.jansen@dataiku.com)
 """
 
+from ansible.errors import AnsibleError
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible_collections.dataiku.dss.plugins.module_utils.utils import makeSimpleLogger
-from requests import Session
-from requests.auth import HTTPBasicAuth
 import os
 import subprocess
 import json
 import stat
+
+try:
+    from requests import Session
+    from requests.auth import HTTPBasicAuth
+except ImportError as import_error:
+    REQUESTS_IMPORT_ERROR = import_error
+else:
+    REQUESTS_IMPORT_ERROR = None
 
 logger = makeSimpleLogger(__name__)
 
@@ -51,7 +58,10 @@ class InventoryModule(BaseInventoryPlugin):
     NAME = "fm_dss"
 
     def __init__(self):
-        super(InventoryModule, self).__init__()
+        if REQUESTS_IMPORT_ERROR:
+            raise AnsibleError("'requests' needs to be installed to use this plugin") from REQUESTS_IMPORT_ERROR
+        else:
+            super(InventoryModule, self).__init__()
 
     def parse(self, inventory, loader, path, cache=False):
         try:
@@ -146,7 +156,7 @@ class InventoryModule(BaseInventoryPlugin):
                 instances_config = fleet_manager["instances"]
                 network_access = instances_config.get("access_type", "public_ip")
                 instance_ssh_user = instances_config["ssh"]["user"]
-                required_fm_tags = instances_config.get("required_fm_tags",[])
+                required_fm_tags = instances_config.get("required_fm_tags", [])
 
                 # Get vnets
                 request = session.request(
@@ -192,11 +202,8 @@ class InventoryModule(BaseInventoryPlugin):
 
                     # Check tags
                     if not set(required_fm_tags).issubset(set(instance["fmTags"])):
-                        logger.info(
-                            f"Instance {inventory_hostname} skipped, not matching required tags."
-                        )
+                        logger.info("Instance %s skipped, not matching required tags.", inventory_hostname)
                         continue
-
 
                     # Physical instance info
                     request = session.request(
@@ -232,11 +239,9 @@ class InventoryModule(BaseInventoryPlugin):
                         }
                         inventory_host.set_variable("dataiku", dataiku_facts)
                         logger.info(
-                            f"Generated data for instance {inventory_hostname} in group {vnets_inventory[vnet_id].name}"
+                            "Generated data for instance %s in group %s", inventory_hostname, vnets_inventory[vnet_id].name
                         )
                     else:
-                        logger.info(
-                            f"Instance {inventory_hostname} is ignored because physical instance is not found."
-                        )
+                        logger.info("Instance %s is ignored because physical instance is not found.", inventory_hostname)
         except Exception as e:
             logger.error(e, exc_info=True)

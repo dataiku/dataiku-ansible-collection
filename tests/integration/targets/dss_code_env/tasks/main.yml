@@ -21,14 +21,18 @@
     state: present
     lang: PYTHON
     owner: ansible
-    python_interpreter: PYTHON36
+    python_interpreter: PYTHON39
     package_list:
-      - scikit-learn>=0.20,<0.21
-      - scipy>=1.1,<1.2
-      - xgboost==0.81
-      - statsmodels>=0.9,<0.10
-      - jinja2>=2.10,<2.11
-      - flask>=1.0,<1.1
+      - openpyxl
+      - matplotlib
+      - tabula-py
+      - altair
+      - bokeh
+      - dash
+      - nbformat==4.2.0
+      - plotly==4.14.3
+      - requests
+      - datetime
   register: code_env
 
 - assert:
@@ -48,14 +52,18 @@
     state: present
     lang: PYTHON
     owner: ansible
-    python_interpreter: PYTHON36
+    python_interpreter: PYTHON39
     package_list:
-      - scikit-learn>=0.20,<0.21
-      - scipy>=1.1,<1.2
-      - xgboost==0.81
-      - statsmodels>=0.9,<0.10
-      - jinja2>=2.10,<2.11
-      - flask>=1.0,<1.1
+      - openpyxl
+      - matplotlib
+      - tabula-py
+      - altair
+      - bokeh
+      - dash
+      - nbformat==4.2.0
+      - plotly==4.14.3
+      - requests
+      - datetime
   register: code_env_idem
 
 - assert:
@@ -75,10 +83,10 @@
     state: present
     lang: PYTHON
     owner: ansible
-    python_interpreter: PYTHON36
+    python_interpreter: PYTHON39
     package_list:
-      - scikit-learn>=0.20,<0.21
-      - flask>=1.0,<1.1
+      - nbformat==4.2.0
+      - plotly==4.14.3
   register: code_env_update
 
 - assert:

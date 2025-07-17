@@ -1,5 +1,6 @@
 tests/unit/plugins/module_utils/test_dataiku_utils.py future-import-boilerplate!skip # Ignore python 2 compatibility
 plugins/module_utils/dataiku_utils.py future-import-boilerplate!skip # Ignore python 2 compatibility
+plugins/module_utils/utils.py future-import-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_api_deployer_infra.py future-import-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_code_env.py future-import-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_connection_generic.py future-import-boilerplate!skip # Ignore python 2 compatibility
@@ -12,6 +13,7 @@ plugins/modules/dss_system_facts.py future-import-boilerplate!skip # Ignore pyth
 plugins/modules/dss_user.py future-import-boilerplate!skip # Ignore python 2 compatibility
 tests/unit/plugins/module_utils/test_dataiku_utils.py metaclass-boilerplate!skip # Ignore python 2 compatibility
 plugins/module_utils/dataiku_utils.py metaclass-boilerplate!skip # Ignore python 2 compatibility
+plugins/module_utils/utils.py metaclass-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_api_deployer_infra.py metaclass-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_code_env.py metaclass-boilerplate!skip # Ignore python 2 compatibility
 plugins/modules/dss_connection_generic.py metaclass-boilerplate!skip # Ignore python 2 compatibility
@@ -32,6 +34,7 @@ plugins/modules/dss_group.py validate-modules:missing-gplv3-license # Ignore GPL
 plugins/modules/dss_plugin.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
 plugins/modules/dss_system_facts.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
 plugins/modules/dss_user.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
+plugins/inventory/fm_dss.py validate-modules:missing-gplv3-license # Ignore GPLv3 licence header
 plugins/modules/dss_api_deployer_infra.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_code_env.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_connection_generic.py validate-modules:invalid-documentation # ignore author format check
@@ -42,14 +45,5 @@ plugins/modules/dss_group.py validate-modules:invalid-documentation # ignore aut
 plugins/modules/dss_plugin.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_system_facts.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_user.py validate-modules:invalid-documentation # ignore author format check
+plugins/inventory/fm_dss.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_get_credentials.py pylint:logging-format-interpolation
-plugins/modules/dss_api_deployer_infra.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_code_env.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_connection_generic.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_connection_postgresql.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_general_settings.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_get_credentials.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_group.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_plugin.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_user.py pylint:ansible-format-automatic-specification
-plugins/modules/dss_system_facts.py pylint:ansible-format-automatic-specification

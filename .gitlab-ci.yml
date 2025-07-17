@@ -1,0 +1,26 @@
+---
+variables:
+  SANITY_TARGET_PYTHON: "3.10"
+
+stages:
+  - sanity
+  - unit-tests
+  - integration-tests
+  - build
+  - publish
+
+
+.install_ansible:
+  before_script: &install_ansible
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - cd python/deployer-cli
+    - pip3 install requirements.txt
+    - pip3 install requirements-dev.txt
+
+Run Sanity tests:
+  <<: *install_ansible
+  stage: sanity
+  script:
+    - ansible-galaxy collection install .
+    - ansible-test sanity --docker --python $SANITY_TARGET_PYTHON

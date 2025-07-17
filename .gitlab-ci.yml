@@ -1,6 +1,7 @@
 ---
 variables:
   PYTHON_IMAGE: "python:3.11"
+  ANSIBLE_TEST_TARGET_PYTHON: 3.11
 
 stages:
   - sanity
@@ -8,7 +9,6 @@ stages:
   - integration-tests
   - build
   - publish
-
 
 .install_ansible:
   before_script: &install_ansible
@@ -21,14 +21,26 @@ stages:
       - venv
     policy: pull
 
-Run Sanity tests:
-  tags:
-    - docker
-  image: $PYTHON_IMAGE
+.job_base:
   before_script: *install_ansible
   cache: *python_cache
+  tags:
+    - docker
+
+Run Sanity tests:
+  extends: .job_base
+  image: $PYTHON_IMAGE
   stage: sanity
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test sanity --local --coverage
+    - ansible-test sanity --local --coverage --python $ANSIBLE_TEST_TARGET_PYTHON
+
+Run Unit tests:
+  extends: .job_base
+  image: $PYTHON_IMAGE
+  stage: unit-tests
+  script:
+    - ansible-galaxy collection install .
+    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+    - ansible-test units --local --coverage --python $ANSIBLE_TEST_TARGET_PYTHON

@@ -50,7 +50,7 @@ Run Integration tests:
   tags:
     - docker
   stage: integration-tests
-  image: $DATAIKU_CONTAINER
+  image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
   before_script:
     # Start dss process
     - nohup /home/dataiku/run.sh

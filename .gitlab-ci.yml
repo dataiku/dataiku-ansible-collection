@@ -24,4 +24,5 @@ Run Sanity tests:
   stage: sanity
   script:
     - ansible-galaxy collection install .
-    - ansible-test sanity --docker --python $SANITY_TARGET_PYTHON
+    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+    - ansible-test sanity --docker --python $SANITY_TARGET_PYTHON --coverage

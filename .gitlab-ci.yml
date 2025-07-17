@@ -56,7 +56,8 @@ Run Integration tests:
     - /home/dataiku/run.sh > /dev/null &
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
+    - echo $PATH
   script:
     - ansible-galaxy collection install .
-    - cd /home/dataiku/.ansible/collection/ansible_collections/dataiku/dss
+    - cd ~/.ansible/collection/ansible_collections/dataiku/dss
     - ansible-test integration --local dss_code_env

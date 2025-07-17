@@ -1,6 +1,6 @@
 ---
 variables:
-  SANITY_TARGET_PYTHON: "3.10"
+  PYTHON_IMAGE: "python:3.11"
 
 stages:
   - sanity
@@ -12,8 +12,6 @@ stages:
 
 .install_ansible:
   before_script: &install_ansible
-    - python3 -m venv venv
-    - source venv/bin/activate
     - pip3 install -r requirements.txt
     - pip3 install -r requirements-dev.txt
   cache: &python_cache
@@ -24,12 +22,11 @@ stages:
     policy: pull
 
 Run Sanity tests:
-  tags:
-    - shell
+  image: $PYTHON_IMAGE
   before_script: *install_ansible
   cache: *python_cache
   stage: sanity
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test sanity --docker --python $SANITY_TARGET_PYTHON --coverage
+    - ansible-test sanity --local --coverage

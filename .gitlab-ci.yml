@@ -48,15 +48,15 @@ Run Unit tests:
 
 Run Integration tests:
   tags:
-    - shell
+    - docker
   stage: integration-tests
+  image: $DATAIKU_CONTAINER
   before_script:
-    # Chown directory so it can be used from dataiku/dss container
-    - chown -R 1000:1000 .
-    - docker pull $DATAIKU_COMMUNITY_DOCKER_IMAGE
+    # Start dss process
+    - /home/dataiku/run.sh &
+    - pip install -r requirements.txt
+    - pip install -r requirements-dev.txt
   script:
-    - DATAIKU_CONTAINER=$(docker run -it -d --rm -v .:/opt/dataiku/ansible $DATAIKU_COMMUNITY_DOCKER_IMAGE)
-    - docker exec -it $DATAIKU_CONTAINER python3 -m pip install -r /opt/dataiku/ansible/requirements.txt
-    - docker exec -it $DATAIKU_CONTAINER python3 -m pip install -r /opt/dataiku/ansible/requirements-dev.txt
-    - docker exec -it $DATAIKU_CONTAINER ansible-galaxy collection install /opt/dataiku/ansible
-    - docker exec -it -w /homer/dataiku/.ansible/collection/ansible_collections/dataiku/dss $DATAIKU_CONTAINER ansible-test integration --local dss_code_env
+    - ansible-galaxy collection install .
+    - cd /home/dataiku/.ansible/collection/ansible_collections/dataiku/dss
+    - ansible-test integration --local dss_code_env

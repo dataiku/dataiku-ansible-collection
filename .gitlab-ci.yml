@@ -2,6 +2,7 @@
 variables:
   PYTHON_IMAGE: "python:3.11"
   ANSIBLE_TEST_TARGET_PYTHON: 3.11
+  DATAIKU_COMMUNITY_DOCKER_IMAGE: "dataiku/dss:14.0.0"
 
 stages:
   - sanity
@@ -43,4 +44,19 @@ Run Unit tests:
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
+    - ansible-test
+
+Run Integration tests:
+  tags:
+    - shell
+  stage: integration-tests
+  before_script:
+    # Chown directory so it can be used from dataiku/dss container
+    - chown -R 1000:1000 .
+    - docker pull $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  script:
+    - DATAIKU_CONTAINER=$(docker run -it -d --rm -v .:/opt/dataiku/ansible $DATAIKU_COMMUNITY_DOCKER_IMAGE)
+    - docker exec -it $DATAIKU_CONTAINER python3 -m pip install -r /opt/dataiku/ansible/requirements.txt
+    - docker exec -it $DATAIKU_CONTAINER python3 -m pip install -r /opt/dataiku/ansible/requirements-dev.txt
+    - docker exec -it $DATAIKU_CONTAINER ansible-galaxy collection install /opt/dataiku/ansible
+    - docker exec -it -w /homer/dataiku/.ansible/collection/ansible_collections/dataiku/dss $DATAIKU_CONTAINER ansible-test integration --local dss_code_env

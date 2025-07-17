@@ -44,7 +44,7 @@ Run Unit tests:
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test
+    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
 Run Integration tests:
   tags:

@@ -16,11 +16,18 @@ stages:
     - source venv/bin/activate
     - pip3 install -r requirements.txt
     - pip3 install -r requirements-dev.txt
+  cache: &python_cache
+    key: dataiku-dss-$CI_COMMIT_REF_SLUG
+    paths:
+      - "$CI_PROJECT_DIR/.cache/pip"
+      - venv
+    policy: pull
 
 Run Sanity tests:
   tags:
     - shell
   before_script: *install_ansible
+  cache: *python_cache
   stage: sanity
   script:
     - ansible-galaxy collection install .

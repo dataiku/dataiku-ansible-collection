@@ -19,6 +19,8 @@ stages:
     - pip3 install requirements-dev.txt
 
 Run Sanity tests:
+  tags:
+    - shell
   before_script: *install_ansible
   stage: sanity
   script:

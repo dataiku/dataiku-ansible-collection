@@ -1,8 +1,4 @@
 ansible-core<2.17
-jmespath==1.0.1
-requests==2.32.4
-ansible==6.7.0
-dataiku-api-client>12.5
+ansible
 pytest==8.1.1
 pylint<3
-distlib

@@ -22,6 +22,8 @@ stages:
     policy: pull
 
 Run Sanity tests:
+  tags:
+    - docker
   image: $PYTHON_IMAGE
   before_script: *install_ansible
   cache: *python_cache

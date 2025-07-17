@@ -19,7 +19,7 @@ stages:
     - pip3 install requirements-dev.txt
 
 Run Sanity tests:
-  <<: *install_ansible
+  before_script: *install_ansible
   stage: sanity
   script:
     - ansible-galaxy collection install .

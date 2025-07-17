@@ -1,4 +1,5 @@
 ansible-core<2.17
 ansible
 pytest==8.1.1
+pytest-xdist==3.8.0
 pylint<3

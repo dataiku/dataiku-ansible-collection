@@ -19,8 +19,9 @@ manifest:
   directives:
     - include LICENSE
     - include COPYRIGHT
+    - include README.md
     - include requirements.txt
-    - exclude requirements-dev.txt
+    - include requirements-dev.txt
     - recursive-include meta *
     - recursive-include docs *
     - recursive-include plugins *

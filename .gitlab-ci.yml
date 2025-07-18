@@ -54,6 +54,7 @@ Run Integration tests:
   before_script:
     # Start dss process
     - /home/dataiku/run.sh > /dev/null &
+    - sleep 5
     - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
     - sleep 20
     - cat /home/dataiku/dss/run/install.log

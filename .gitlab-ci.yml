@@ -5,8 +5,8 @@ variables:
   DATAIKU_COMMUNITY_DOCKER_IMAGE: "dataiku/dss:14.0.0"
 
 stages:
-#  - sanity
-#  - unit-tests
+  - sanity
+  - unit-tests
   - integration-tests
   - build
   - publish
@@ -46,17 +46,29 @@ stages:
 #    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
 #    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
-Run Integration tests:
+#Run Integration tests:
+#  extends: .job_base
+#  stage: integration-tests
+#  image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+#  before_script:
+#    - /home/dataiku/run.sh > /dev/null &  # Start dss process
+#    - pip install -r requirements.txt
+#    - pip install -r requirements-dev.txt
+#    - export PATH=/home/dataiku/.local/bin:$PATH
+#    - cat $DATAIKU_LICENSE > /home/dataiku/dss/config/license.json
+#  script:
+#    - ansible-galaxy collection install .
+#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+#    - ansible-test integration --local
+
+Build Collection:
   extends: .job_base
-  stage: integration-tests
-  image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  stage: build
   before_script:
-    - /home/dataiku/run.sh > /dev/null &  # Start dss process
-    - pip install -r requirements.txt
-    - pip install -r requirements-dev.txt
-    - export PATH=/home/dataiku/.local/bin:$PATH
-    - cat $DATAIKU_LICENSE > /home/dataiku/dss/config/license.json
+    - pip3 install -r requirements.txt
   script:
-    - ansible-galaxy collection install .
-    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test integration --local
+    ansible-galaxy collection build .
+  artifacts:
+    expire_in: 2hr
+    paths:
+      - dataiku-dss-*.tar.gz

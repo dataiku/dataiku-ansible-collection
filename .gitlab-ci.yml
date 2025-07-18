@@ -85,6 +85,7 @@ Check Collection version:
   dependencies: []
 
 Publish to galaxy:
+  extends: .job_base
   image: $PYTHON_IMAGE
   stage: publish
   script:

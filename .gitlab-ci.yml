@@ -18,8 +18,7 @@ stages:
   cache:
     key: dataiku-dss-$CI_COMMIT_REF_SLUG
     paths:
-      - "$CI_PROJECT_DIR/.cache/pip"
-      - venv
+      - .cache/pip
     policy: pull-push
   tags:
     - docker
@@ -89,7 +88,7 @@ Publish to galaxy:
   image: $PYTHON_IMAGE
   stage: publish
   script:
-    - echo "Hello !"
+    - ls
   needs:
     - job: Check Collection version
     - job: Build Collection

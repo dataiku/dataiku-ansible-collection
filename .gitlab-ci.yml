@@ -19,8 +19,8 @@ stages:
   cache:
     key: dataiku-dss-$CI_COMMIT_REF_SLUG
     paths:
-      - .cache/pip
-    policy: pull-push
+      - ".cache/pip"
+    policy: pull
   tags:
     - docker
 
@@ -28,6 +28,8 @@ Run Sanity tests:
   extends: .job_base
   image: $PYTHON_IMAGE
   stage: sanity
+  cache:
+    policy: pull-push
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
@@ -46,6 +48,11 @@ Run Integration tests:
   extends: .job_base
   stage: integration-tests
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  variables:
+    PIP_CACHE_DIR: "/home/dataiku/.cache/pip"
+  cache:
+    paths:
+      - "/home/dataiku/.cache/pip"
   before_script:
     - /home/dataiku/run.sh > /dev/null &  # Start dss process
     - pip install -r requirements.txt

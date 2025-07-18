@@ -11,20 +11,16 @@ stages:
   - build
   - publish
 
-.install_ansible:
-  before_script: &install_ansible
+.job_base:
+  before_script:
     - pip3 install -r requirements.txt
     - pip3 install -r requirements-dev.txt
-  cache: &python_cache
+  cache:
     key: dataiku-dss-$CI_COMMIT_REF_SLUG
     paths:
       - "$CI_PROJECT_DIR/.cache/pip"
       - venv
-    policy: pull
-
-.job_base:
-  before_script: *install_ansible
-  cache: *python_cache
+    policy: pull-push
   tags:
     - docker
 
@@ -63,6 +59,7 @@ stages:
 
 Build Collection:
   extends: .job_base
+  image: $PYTHON_IMAGE
   stage: build
   before_script:
     - pip3 install -r requirements.txt

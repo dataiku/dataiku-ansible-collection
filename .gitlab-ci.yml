@@ -56,9 +56,9 @@ Run Integration tests:
     - /home/dataiku/run.sh > /dev/null &
     - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
     - sleep 20
-    - /home/dataiku/dss/bin/dss status
     - cat /home/dataiku/dss/run/install.log
     - cat /home/dataiku/dss/run/backend.log
+    - /home/dataiku/dss/bin/dss status
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH

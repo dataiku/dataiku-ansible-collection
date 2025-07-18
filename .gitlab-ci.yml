@@ -54,6 +54,7 @@ Run Integration tests:
   before_script:
     # Start dss process
     - /home/dataiku/run.sh > /dev/null &
+    - sleep 10
     - /home/dataiku/dss/bin/dss status
     - cat /home/dataiku/dss/license.json
     - pip install -r requirements.txt

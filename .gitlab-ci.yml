@@ -71,7 +71,7 @@ Build Collection:
 Check Collection version:
   stage: publish
   tags:
-    - docker
+    - shell
   before_script:
     - TAG=$(git describe --tags --abbrev=0)
     - VERSION_IN_TAG=${TAG#v}

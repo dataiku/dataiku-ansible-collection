@@ -63,6 +63,7 @@ Build Collection:
   stage: build
   before_script:
     - pip3 install -r requirements.txt
+    - export PATH=/home/dataiku/.local/bin:$PATH
   script:
     ansible-galaxy collection build .
   artifacts:

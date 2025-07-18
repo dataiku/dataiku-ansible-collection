@@ -24,38 +24,38 @@ stages:
   tags:
     - docker
 
-#Run Sanity tests:
-#  extends: .job_base
-#  image: $PYTHON_IMAGE
-#  stage: sanity
-#  script:
-#    - ansible-galaxy collection install .
-#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-#    - ansible-test sanity --local --python $ANSIBLE_TEST_TARGET_PYTHON
-#
-#Run Unit tests:
-#  extends: .job_base
-#  image: $PYTHON_IMAGE
-#  stage: unit-tests
-#  script:
-#    - ansible-galaxy collection install .
-#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-#    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
+Run Sanity tests:
+  extends: .job_base
+  image: $PYTHON_IMAGE
+  stage: sanity
+  script:
+    - ansible-galaxy collection install .
+    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+    - ansible-test sanity --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
-#Run Integration tests:
-#  extends: .job_base
-#  stage: integration-tests
-#  image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
-#  before_script:
-#    - /home/dataiku/run.sh > /dev/null &  # Start dss process
-#    - pip install -r requirements.txt
-#    - pip install -r requirements-dev.txt
-#    - export PATH=/home/dataiku/.local/bin:$PATH
-#    - cat $DATAIKU_LICENSE > /home/dataiku/dss/config/license.json
-#  script:
-#    - ansible-galaxy collection install .
-#    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-#    - ansible-test integration --local
+Run Unit tests:
+  extends: .job_base
+  image: $PYTHON_IMAGE
+  stage: unit-tests
+  script:
+    - ansible-galaxy collection install .
+    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
+
+Run Integration tests:
+  extends: .job_base
+  stage: integration-tests
+  image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  before_script:
+    - /home/dataiku/run.sh > /dev/null &  # Start dss process
+    - pip install -r requirements.txt
+    - pip install -r requirements-dev.txt
+    - export PATH=/home/dataiku/.local/bin:$PATH
+    - cat $DATAIKU_LICENSE > /home/dataiku/dss/config/license.json
+  script:
+    - ansible-galaxy collection install .
+    - cd ~/.ansible/collections/ansible_collections/dataiku/dss
+    - ansible-test integration --local
 
 Build Collection:
   extends: .job_base
@@ -69,12 +69,13 @@ Build Collection:
       - dataiku-dss-*.tar.gz
 
 Check Collection version:
+  rules:
+    - if: $CI_COMMIT_TAG
   stage: publish
   tags:
     - shell
   before_script:
-    - TAG=$(git ls-remote --tags --ref --sort=v:refname 2>/dev/null | tail -1 | sed -e 's/.*\///')
-    - VERSION_IN_TAG=${TAG#v}
+    - VERSION_IN_TAG=${CI_COMMIT_TAG#v}
     - VERSION_IN_FILE=$(grep '^version:' galaxy.yml | awk '{print $2}')
   script: |
       if [[ "$VERSION_IN_TAG" != "$VERSION_IN_FILE" ]]; then
@@ -85,6 +86,8 @@ Check Collection version:
   dependencies: []
 
 Publish to galaxy:
+  rules:
+    - if: $CI_COMMIT_TAG
   extends: .job_base
   image: $PYTHON_IMAGE
   stage: publish

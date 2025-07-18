@@ -87,5 +87,6 @@ Publish to galaxy:
     - echo "Hello !"
   needs:
     - job: Check Collection version
+    - job: Build Collection
   dependencies:
     - Build Collection

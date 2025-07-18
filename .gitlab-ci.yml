@@ -47,22 +47,15 @@ stages:
 #    - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
 Run Integration tests:
-  tags:
-    - docker
+  extends: .job_base
   stage: integration-tests
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
   before_script:
-    # Start dss process
-    - /home/dataiku/run.sh > /dev/null &
-    - sleep 5
-    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
-    - sleep 20
-    - cat /home/dataiku/dss/run/install.log
-    - cat /home/dataiku/dss/run/backend.log
-    - /home/dataiku/dss/bin/dss status
+    - /home/dataiku/run.sh > /dev/null &  # Start dss process
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH
+    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss

@@ -53,6 +53,7 @@ Run Integration tests:
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
   before_script:
     # Start dss process
+    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
     - /home/dataiku/run.sh > /dev/null &
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
@@ -60,4 +61,4 @@ Run Integration tests:
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
-    - ansible-test integration --local dss_code_env
+    - ansible-test integration --local

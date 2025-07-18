@@ -140,6 +140,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
 )
 
 
+# TODO: make idempotent
 def run_module():
     # define the available arguments/parameters that a user can pass to
     # the module

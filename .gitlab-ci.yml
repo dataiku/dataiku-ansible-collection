@@ -56,6 +56,7 @@ Run Integration tests:
     - /home/dataiku/run.sh > /dev/null &
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
+    - export PATH=/home/dataiku/.local/bin:$PATH
     - echo $PATH
   script:
     - ansible-galaxy collection install .

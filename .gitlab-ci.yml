@@ -62,8 +62,30 @@ Build Collection:
   image: $PYTHON_IMAGE
   stage: build
   script:
-    ansible-galaxy collection build .
+    - ansible-galaxy collection build .
   artifacts:
     expire_in: 2hr
     paths:
       - dataiku-dss-*.tar.gz
+
+Check Collection version:
+  stage: publish
+  before_script:
+    - TAG=$(git describe --tags --abbrev=0)
+    - VERSION_IN_TAG=${TAG#v}
+    - VERSION_IN_FILE=$(grep '^version:' galaxy.yml | awk '{print $2}')
+  script: |
+      if [[ "$VERSION_IN_TAG" != "$VERSION_IN_FILE" ]]; then
+        echo "Version mismatch: Git tag is $VERSION_IN_TAG but galaxy.yml has $VERSION_IN_FILE"
+        exit 1
+      fi
+
+Publish to galaxy:
+  image: $PYTHON_IMAGE
+  stage: publish
+  script:
+    - echo "Hello !"
+  needs:
+    - job: Check Collection version
+  dependencies:
+    - Build Collection

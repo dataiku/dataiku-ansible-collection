@@ -3,6 +3,7 @@ variables:
   PYTHON_IMAGE: "python:3.11"
   ANSIBLE_TEST_TARGET_PYTHON: 3.11
   DATAIKU_COMMUNITY_DOCKER_IMAGE: "dataiku/dss:14.0.0"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
   - sanity

@@ -53,8 +53,8 @@ Run Integration tests:
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
   before_script:
     # Start dss process
-    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
     - /home/dataiku/run.sh > /dev/null &
+    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH

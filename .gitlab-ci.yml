@@ -55,7 +55,7 @@ Run Integration tests:
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - cat $DATAIKU_LICENSE > /home/dataiku/dss/license.json
+    - cat $DATAIKU_LICENSE > /home/dataiku/dss/config/license.json
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss

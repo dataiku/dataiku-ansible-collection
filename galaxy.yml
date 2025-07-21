@@ -8,7 +8,7 @@ authors:
 - Augustin Ardon
 description: Dataiku DSS ansible collection
 license_file: LICENSE
-tags: ["dataiku", "dss", "data-science-studio"]
+tags: ["dataiku", "dss", "data_science_studio"]
 dependencies: {}
 
 repository: http://dataiku/dataiku-ansible-collection

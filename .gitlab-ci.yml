@@ -54,12 +54,16 @@ Run Integration tests:
     paths:
       - "/home/dataiku/.cache/pip"
   before_script:
-    - /home/dataiku/run.sh > /dev/null &  # Start dss process
-    - sleep 15
+    - cat $DATAIKU_LICENSE | base64 -d > /home/dataiku/license.json
+
+    - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json
+    - echo "dku.registration.channel=docker-image" >> $DSS_DATADIR/config/dip.properties
+    - echo "dku.exports.chrome.sandbox=false" >> $DSS_DATADIR/config/dip.properties
+    - $DSS_DATADIR/bin/dss start
+
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - cat $DATAIKU_LICENSE | base64 -d > /home/dataiku/dss/config/license.json
   script:
     - ansible-galaxy collection install .
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss

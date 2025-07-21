@@ -1,5 +1,18 @@
 # Changelog
 
+# [v1.4.0] - 2025-07-21
+
+### Added
+
+- Publish collection to galaxy
+- Added CI/CD for the collection
+- Support cgroup v2 in telegraf probes
+
+### Changed
+### Fixed
+
+- Removed docker input deprecated arguments from telegraf default configuration
+
 # [v1.3.2] - 2025-05-02
 
 ### Added

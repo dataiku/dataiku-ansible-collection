@@ -1,7 +1,7 @@
 ---
 namespace: dataiku
 name: dss
-version: 1.0.0
+version: 1.4.0
 readme: README.md
 authors:
 - Jean-Bernard Jansen

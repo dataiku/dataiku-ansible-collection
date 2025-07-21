@@ -55,6 +55,7 @@ Run Integration tests:
       - "/home/dataiku/.cache/pip"
   before_script:
     - /home/dataiku/run.sh > /dev/null &  # Start dss process
+    - sleep 15
     - pip install -r requirements.txt
     - pip install -r requirements-dev.txt
     - export PATH=/home/dataiku/.local/bin:$PATH

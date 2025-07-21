@@ -19,6 +19,7 @@ manifest:
   directives:
     - include LICENSE
     - include COPYRIGHT
+    - include CHANGELOG.md
     - include README.md
     - include requirements.txt
     - include requirements-dev.txt

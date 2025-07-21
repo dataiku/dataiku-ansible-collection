@@ -10,8 +10,9 @@ short_description: Creates/get an admin API key onto a DSS datadir.
 
 description:
     This module reads a datadir and returns the port on which the studio is exposed, the admin API Key as well as the datadir path exposed to future usage.
-    Warning: When running this module with `--check` mode activated, it does not return a real api_key, but rather its ID which will not be usable by other modules.
-    Warning: Module is not idempotent.
+    WARNING - When running this module with `--check` mode activated, it does not return a real api_key,
+    but rather its ID which will not be usable by other modules.
+    WARNING - Module is not idempotent.
 
 options:
     datadir:

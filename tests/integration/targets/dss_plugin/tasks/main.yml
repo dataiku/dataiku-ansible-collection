@@ -35,7 +35,7 @@
   become: true
   become_user: dataiku
   file:
-    path: /data/dataiku/plugins/
+    path: "{{ dss_data_dir | dirname }}/plugins/"
     state: directory
 
 - name: Download plugin zip archive
@@ -43,7 +43,7 @@
   become_user: dataiku
   get_url:
     url: https://github.com/dataiku/dss-plugin-list-folder-contents/archive/refs/tags/v1.0.0.zip
-    dest: /data/dataiku/plugins/dss-plugin-list-folder-contents-v1.0.0.zip
+    dest: "{{ dss_data_dir | dirname }}/plugins/dss-plugin-list-folder-contents-v1.0.0.zip"
 
 - name: Install plugin from zip
   become: true
@@ -52,7 +52,7 @@
     connect_to: "{{ dss_connection_info }}"
     state: present
     plugin_id: list-folder-contents
-    zip_file: /data/dataiku/plugins/dss-plugin-list-folder-contents-v1.0.0.zip
+    zip_file: "{{ dss_data_dir | dirname }}/plugins/dss-plugin-list-folder-contents-v1.0.0.zip"
   register: dss_plugin_zip
 
 - assert:

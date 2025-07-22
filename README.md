@@ -144,6 +144,9 @@ tasks:
       force_install: "{{ dataiku_dss_was_installed or dataiku_dss_was_upgraded }}"
 ```
 
+More information on the roles documentation
+- [install_telegraf role documentation](roles/install_telegraf/README.md)
+- [install_tesseract role documentation](roles/install_tesseract/README.md)
 
 Migrating from dataiku-ansible-modules
 -----------------------------------------

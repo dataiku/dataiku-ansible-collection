@@ -16,3 +16,29 @@
       - dss_connection_info.port is defined
       - dss_connection_info.api_key is defined
       - dss_connection_info.data_dir == dss_data_dir
+      - dss_connection_info.node_type is defined
+
+################################
+# Check module idempotence for Govern nodes
+################################
+- name: Check module idempotence for govern
+  become: true
+  become_user: dataiku
+  dataiku.dss.dss_get_credentials:
+    datadir: "{{ dss_data_dir }}"
+    api_key_name: ansible-collection-test-credentials
+  register: dss_connection_info_idem
+  when: dss_connection_info.node_type == "govern"
+
+- assert:
+    that:
+      - dss_connection_info_idem is not changed
+      - dss_connection_info_idem.port is defined
+      - dss_connection_info_idem.port == dss_connection_info.port
+      - dss_connection_info_idem.api_key is defined
+      - dss_connection_info_idem.api_key == dss_connection_info.api_key
+      - dss_connection_info_idem.data_dir is defined
+      - dss_connection_info_idem.data_dir == dss_connection_info.data_dir
+      - dss_connection_info_idem.node_type is defined
+      - dss_connection_info_idem.node_type == dss_connection_info.node_type
+  when: dss_connection_info.node_type == "govern"

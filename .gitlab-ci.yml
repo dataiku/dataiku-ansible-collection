@@ -48,6 +48,9 @@ Run Integration tests:
   extends: .job_base
   stage: integration-tests
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  parallel:
+    matrix:
+      - DSS_NOTE_TYPE: ["design", "api", "deployer", "automation", "govern"]
   variables:
     PIP_CACHE_DIR: "/home/dataiku/.cache/pip"
   cache:
@@ -56,7 +59,7 @@ Run Integration tests:
   before_script:
     - cat $DATAIKU_LICENSE | base64 -d > /home/dataiku/license.json
 
-    - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json
+    - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json -t $DSS_NOTE_TYPE
     - echo "dku.registration.channel=docker-image" >> $DSS_DATADIR/config/dip.properties
     - echo "dku.exports.chrome.sandbox=false" >> $DSS_DATADIR/config/dip.properties
     - $DSS_DATADIR/bin/dss start

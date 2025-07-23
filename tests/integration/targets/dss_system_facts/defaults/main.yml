@@ -1,3 +1,3 @@
 ---
-dss_data_dir: /home/dataiku/dss
+dss_data_dir: /data/dataiku/dss_data
 dss_default_port: 10000

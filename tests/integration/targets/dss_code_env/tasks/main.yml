@@ -11,104 +11,15 @@
   register: dss_connection_info
 
 ################################
-# DSS code env Creation
+# Design, Automation Nodes
 ################################
-- name: Create a code env
-  dataiku.dss.dss_code_env:
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    deployment_mode: DESIGN_MANAGED
-    state: present
-    lang: PYTHON
-    owner: ansible
-    python_interpreter: PYTHON39
-    package_list:
-      - openpyxl
-      - matplotlib
-      - tabula-py
-      - altair
-      - bokeh
-      - dash
-      - nbformat==4.2.0
-      - plotly==4.14.3
-      - requests
-      - datetime
-  register: code_env
-
-- assert:
-    that:
-      - code_env is changed
-      - code_env.message == "CREATED"
-      - code_env.dss_code_env is defined
+- name: Run tests for Design, Automation nodes
+  ansible.builtin.import_tasks: dss.yml
+  when: dss_connection_info.node_type in ["design", "automation"]
 
 ################################
-# Check module idempotence
+# Api, Deployer, Govern Nodes
 ################################
-- name: Check module idempotence
-  dataiku.dss.dss_code_env:
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    deployment_mode: DESIGN_MANAGED
-    state: present
-    lang: PYTHON
-    owner: ansible
-    python_interpreter: PYTHON39
-    package_list:
-      - openpyxl
-      - matplotlib
-      - tabula-py
-      - altair
-      - bokeh
-      - dash
-      - nbformat==4.2.0
-      - plotly==4.14.3
-      - requests
-      - datetime
-  register: code_env_idem
-
-- assert:
-    that:
-      - code_env_idem is not changed
-      - code_env_idem.message == "UNCHANGED"
-      - code_env_idem.dss_code_env == code_env.dss_code_env
-
-################################
-# DSS code env Update
-################################
-- name: Update a code env
-  dataiku.dss.dss_code_env:
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    deployment_mode: DESIGN_MANAGED
-    state: present
-    lang: PYTHON
-    owner: ansible
-    python_interpreter: PYTHON39
-    package_list:
-      - nbformat==4.2.0
-      - plotly==4.14.3
-  register: code_env_update
-
-- assert:
-    that:
-      - code_env_update is changed
-      - code_env_update.message == "MODIFIED"
-      - code_env_update.dss_code_env != code_env.dss_code_env
-
-################################
-# DSS code env Deletion
-################################
-- name: Delete a code env
-  dataiku.dss.dss_code_env:
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    deployment_mode: DESIGN_MANAGED
-    state: absent
-    lang: PYTHON
-  register: code_env_delete
-
-- assert:
-    that:
-      - code_env_delete is changed
-      - code_env_delete.message == "DELETED"
-      - code_env_delete.dss_code_env is not defined
+- name: Run tests for Api, Deployer, Govern nodes
+  ansible.builtin.import_tasks: not_supported.yml
+  when: dss_connection_info.node_type in ["api", "deployer", "govern"]

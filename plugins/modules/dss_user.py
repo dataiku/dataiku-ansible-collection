@@ -39,6 +39,11 @@ options:
         description:
             - The path of the datadir where DSS is installed
         required: false
+    node_type:
+        type: str
+        description:
+            - The DSS node type
+        required: false
     login:
         type: str
         description:
@@ -167,10 +172,10 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dataikuapi_to_path
 )
 
+supported_node_types = ["design", "automation", "deployer", "govern"]
+
 
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
     module_args = dict(
         login=dict(type="str", required=True),
         password=dict(type="str", required=False, default=None, no_log=True),
@@ -186,7 +191,6 @@ def run_module():
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
     add_dataikuapi_to_path(module)
-    from dataikuapi.dss.admin import DSSUser
     from dataikuapi.utils import DataikuException
 
     args = MakeNamespace(module.params)
@@ -198,13 +202,14 @@ def run_module():
     result = dict(changed=False, message="UNCHANGED", )
 
     try:
-        client = get_client_from_parsed_args(module)
-        user = DSSUser(client, args.login)
+        client = get_client_from_parsed_args(module, supported_node_types)
+        user = client.get_user(args.login)
         user_exists = True
         create_user = False
         current_user = None
         try:
-            current_user = user.get_definition()
+            current_user_settings = user.get_settings()
+            current_user_def = current_user_settings.get_raw()
         except DataikuException as e:
             if str(e).startswith("com.dataiku.dip.server.controllers.NotFoundException"):
                 user_exists = False
@@ -237,7 +242,7 @@ def run_module():
 
         # Build the new user definition
         # TODO: be careful that the key names changes between creation and edition
-        new_user_def = copy.deepcopy(current_user) if user_exists else {}  # Used for modification
+        new_user_def = copy.deepcopy(current_user_def) if user_exists else {}  # Used for modification
         result["previous_user_def"] = copy.deepcopy(new_user_def)
         for key, api_param in [
             ("email", "email"),
@@ -257,11 +262,11 @@ def run_module():
         # Sort groups list before comparison as they should be considered sets
         new_user_def.get("groups", []).sort()
         if user_exists:
-            current_user.get("groups", []).sort()
+            current_user_def.get("groups", []).sort()
 
         # Prepare the result for dry-run mode
         result["changed"] = (
-            create_user or (user_exists and args.state == "absent") or (user_exists and current_user != new_user_def)
+            create_user or (user_exists and args.state == "absent") or (user_exists and current_user_def != new_user_def)
         )
         if result["changed"]:
             if create_user:
@@ -269,7 +274,7 @@ def run_module():
             elif user_exists:
                 if args.state == "absent":
                     result["message"] = "DELETED"
-                elif current_user != new_user_def:
+                elif current_user_def != new_user_def:
                     result["message"] = "MODIFIED"
 
         # Can be useful to register info from a playbook and act on it
@@ -290,14 +295,15 @@ def run_module():
                         del new_user_def[create_excluded_key]
                 new_user = client.create_user(args.login, args.password, **new_user_def)
                 if module.params.get("email", None) is not None:
-                    new_user_def_mod = new_user.get_definition()
-                    new_user_def_mod.update(create_excluded_values)
-                    new_user.set_definition(new_user_def_mod)
+                    new_user_def_mod = new_user.get_settings()
+                    new_user_def_mod.get_raw().update(create_excluded_values)
+                    new_user_def_mod.save()
             elif user_exists:
                 if args.state == "absent":
                     user.delete()
-                elif current_user != new_user_def:
-                    user.set_definition(new_user_def)
+                elif current_user_def != new_user_def:
+                    current_user_def.update(new_user_def)
+                    current_user_settings.save()
                     result["message"] = "MODIFIED"
 
         module.exit_json(**result)

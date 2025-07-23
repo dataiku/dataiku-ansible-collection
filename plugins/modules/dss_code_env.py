@@ -38,6 +38,11 @@ options:
         description:
             - The path of the datadir where DSS is installed
         required: false
+    node_type:
+        type: str
+        description:
+            - The DSS node type
+        required: false
     lang:
         type: str
         description:
@@ -196,26 +201,10 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
 )
 
 
+supported_node_types = ["design", "automation"]
+
+
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
-
-    #     Fields that can be updated in design node:
-
-    #     * env.permissions, env.usableByAll, env.desc.owner
-    #     * env.specCondaEnvironment, env.specPackageList, env.externalCondaEnvName, env.desc.installCorePackages,
-    #       env.desc.installJupyterSupport, env.desc.yarnPythonBin
-
-    #     Fields that can be updated in automation node (where {version} is the updated version):
-
-    #     * env.permissions, env.usableByAll, env.owner
-    #     * env.{version}.specCondaEnvironment, env.{version}.specPackageList, env.{version}.externalCondaEnvName,
-    #       env.{version}.desc.installCorePackages, env.{version}.desc.installJupyterSupport, env.{version}.desc.yarnPythonBin
-
-    # [ "version" { ]
-    #   permissions, usableByAll, owner, specCondaEnvironement, specPackageList, externalCondaEnvName
-    # desc(installCorePackages,installJupyterSupport, yarnPythonbin)
-    # [ } ]
     module_args = dict(
         state=dict(type="str", required=False, default="present"),
         name=dict(type="str", required=True),
@@ -288,7 +277,7 @@ def run_module():
     update_packages = False
 
     try:
-        client = get_client_from_parsed_args(module)
+        client = get_client_from_parsed_args(module, supported_node_types)
         code_envs = client.list_code_envs()
 
         # Check existence

@@ -15,4 +15,4 @@
       - dss_system_info.install_ini is defined
       - dss_system_info.raw_install_ini is defined
       - dss_system_info.install_ini.server.port == "{{ dss_default_port }}"
-      - dss_system_info.install_ini.general.nodetype == "design"
+      - dss_system_info.install_ini.general.nodetype is defined

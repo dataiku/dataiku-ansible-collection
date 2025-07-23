@@ -1,0 +1,29 @@
+---
+################################
+# DSS code env Creation
+################################
+- name: Create a code env
+  dataiku.dss.dss_code_env:
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    deployment_mode: DESIGN_MANAGED
+    state: present
+    lang: PYTHON
+    owner: ansible
+    python_interpreter: PYTHON39
+    package_list:
+      - openpyxl
+      - matplotlib
+      - tabula-py
+      - altair
+      - bokeh
+      - dash
+      - nbformat==4.2.0
+      - plotly==4.14.3
+      - requests
+      - datetime
+  register: code_env
+  failed_when: >
+    (not code_env.msg is search("Node type api is not supported")) and
+    (not code_env.msg is search("Node type deployer is not supported")) and
+    (not code_env.msg is search("Node type govern is not supported"))

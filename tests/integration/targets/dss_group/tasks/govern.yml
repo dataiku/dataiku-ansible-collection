@@ -1,0 +1,89 @@
+---
+################################
+# DSS group Creation
+################################
+- name: Create a dss group
+  dataiku.dss.dss_group:
+    state: present
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    admin: false
+    source_type: LDAP
+    may_manage_govern: false
+    ldap_group_names:
+      - dss-users
+  register: dss_group
+
+- assert:
+    that:
+      - dss_group is changed
+      - dss_group.message == "CREATED"
+      - dss_group.group_def is defined
+      - dss_group.previous_group_def is not defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_group:
+    state: present
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    admin: false
+    source_type: LDAP
+    may_manage_govern: false
+    ldap_group_names:
+      - dss-users
+  register: dss_group_idem
+
+- assert:
+    that:
+      - dss_group_idem is not changed
+      - dss_group_idem.message == "UNCHANGED"
+      - dss_group_idem.group_def is defined
+      - dss_group_idem.group_def == dss_group.group_def
+      - dss_group_idem.previous_group_def is defined
+      - dss_group_idem.previous_group_def == dss_group.group_def
+
+################################
+# DSS group Update
+################################
+- name: Update a dss group
+  dataiku.dss.dss_group:
+    state: present
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    admin: true
+    source_type: LDAP
+    may_manage_govern: true
+    ldap_group_names:
+      - dss-users
+  register: dss_group_update
+
+- assert:
+    that:
+      - dss_group_update is changed
+      - dss_group_update.message == "MODIFIED"
+      - dss_group_update.group_def is defined
+      - dss_group_update.group_def != dss_group.group_def
+      - dss_group_update.previous_group_def is defined
+      - dss_group_update.previous_group_def == dss_group_idem.group_def
+
+################################
+# DSS group Deletion
+################################
+- name: Delete a dss group
+  dataiku.dss.dss_group:
+    state: absent
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    source_type: LDAP
+  register: dss_group_delete
+
+- assert:
+    that:
+      - dss_group_delete is changed
+      - dss_group_delete.message == "DELETED"
+      - dss_group_delete.group_def is not defined
+      - dss_group_delete.previous_group_def is defined
+      - dss_group_delete.previous_group_def == dss_group_update.group_def

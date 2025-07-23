@@ -14,7 +14,7 @@
 - name: Check that DSS is started
   become: true
   become_user: dataiku
-  shell: "{{ dss_data_dir }}/bin/dss status | grep backend | awk '{print $2}'"
+  shell: "{{ dss_data_dir }}/bin/dss status | grep -E 'backend|governserver' | awk '{print $2}'"
   changed_when: false
   register: dss_status
 

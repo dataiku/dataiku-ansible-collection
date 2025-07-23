@@ -10,9 +10,6 @@
     api_key_name: ansible-collection-test
   register: dss_connection_info
 
-- debug:
-    var: dss_connection_info
-
 ################################
 # Design, Deployer Nodes
 ################################

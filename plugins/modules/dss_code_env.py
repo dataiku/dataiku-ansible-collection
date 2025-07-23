@@ -201,7 +201,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
 )
 
 
-supported_node_types = ["design", "automation"]
+supported_node_types = ["design", "automation", "deployer"]
 
 
 def run_module():

@@ -13,13 +13,13 @@
 ################################
 # Design, Automation Nodes
 ################################
-- name: Run tests for Design, Automation nodes
+- name: Run tests for Design, Deployer, Automation nodes
   ansible.builtin.import_tasks: dss.yml
-  when: dss_connection_info.node_type in ["design", "automation"]
+  when: dss_connection_info.node_type in ["design", "automation", "deployer"]
 
 ################################
 # Api, Deployer, Govern Nodes
 ################################
-- name: Run tests for Api, Deployer, Govern nodes
+- name: Run tests for Api, Govern nodes
   ansible.builtin.import_tasks: not_supported.yml
-  when: dss_connection_info.node_type in ["api", "deployer", "govern"]
+  when: dss_connection_info.node_type in ["api", "govern"]

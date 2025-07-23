@@ -202,7 +202,7 @@ def run_module():
                 create = True
                 create_command = [
                     "{}/bin/{}".format(args.datadir, exec_name),
-                    "admin-key-create",
+                    "api-key-create",
                     "--output",
                     "json",
                     "--label",

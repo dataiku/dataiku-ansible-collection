@@ -75,7 +75,7 @@ Run Integration tests:
     matrix:
       - DSS_NOTE_TYPE: [ "design", "api", "deployer", "automation" ]
 
-Run Integration tests[govern]:
+Run Integration tests:\ [govern]:
   extends: .integration_test
   variables:
     POSTGRES_DB: governdb

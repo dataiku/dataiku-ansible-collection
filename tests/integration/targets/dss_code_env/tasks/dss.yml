@@ -7,9 +7,9 @@
     deployment_mode: >-
       {% if dss_connection_info.node_type == "design" %}
       DESIGN_MANAGED
-      {% if dss_connection_info.node_type == "automation" %}
+      {% elif dss_connection_info.node_type == "automation" %}
       AUTOMATION_VERSIONED
-      {% if dss_connection_info.node_type == "deployer" %}
+      {% elif dss_connection_info.node_type == "deployer" %}
       AUTOMATION_SINGLE
       {% endif %}
 

@@ -74,6 +74,8 @@ Run Integration tests: &integration_tests
 
 Run Integration tests[govern]:
   <<: *integration_tests
+  parallel:
+    matrix: []
   variables:
     POSTGRES_DB: governdb
     POSTGRES_PORT: 5432

@@ -75,7 +75,7 @@ Run Integration tests:
     matrix:
       - DSS_NOTE_TYPE: [ "design", "api", "deployer", "automation" ]
 
-Run Integration tests:\ [govern]:
+Run Integration tests [govern]:
   extends: .integration_test
   variables:
     POSTGRES_DB: governdb
@@ -89,9 +89,9 @@ Run Integration tests:\ [govern]:
     - cat $DATAIKU_LICENSE | base64 -d > /home/dataiku/license.json
 
     - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json -t govern
-    - echo "psql.jdbc.url=jdbc:postgresql://postgres:$POSTGRES_PORT/$POSTGRES_DB
-    - echo "psql.jdbc.user=$POSTGRES_USER"
-    - echo "psql.jdbc.password=$POSTGRES_PASSWORD"
+    - echo "psql.jdbc.url=jdbc:postgresql://postgres:$POSTGRES_PORT/$POSTGRES_DB" >> $DSS_DATADIR/config/dip.properties
+    - echo "psql.jdbc.user=$POSTGRES_USER" >> $DSS_DATADIR/config/dip.properties
+    - echo "psql.jdbc.password=$POSTGRES_PASSWORD" >> $DSS_DATADIR/config/dip.properties
     - echo "dku.registration.channel=docker-image" >> $DSS_DATADIR/config/dip.properties
     - echo "dku.exports.chrome.sandbox=false" >> $DSS_DATADIR/config/dip.properties
     - $DSS_DATADIR/bin/dss init-db

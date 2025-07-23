@@ -44,13 +44,10 @@ Run Unit tests:
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
     - ansible-test units --local --python $ANSIBLE_TEST_TARGET_PYTHON
 
-Run Integration tests: &integration_tests
+.integration_test:
   extends: .job_base
   stage: integration-tests
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
-  parallel:
-    matrix:
-      - DSS_NOTE_TYPE: ["design", "api", "deployer", "automation"]
   variables:
     PIP_CACHE_DIR: "/home/dataiku/.cache/pip"
   cache:
@@ -72,10 +69,14 @@ Run Integration tests: &integration_tests
     - cd ~/.ansible/collections/ansible_collections/dataiku/dss
     - ansible-test integration --local
 
-Run Integration tests[govern]:
-  <<: *integration_tests
+Run Integration tests:
+  extends: .integration_test
   parallel:
-    matrix: []
+    matrix:
+      - DSS_NOTE_TYPE: [ "design", "api", "deployer", "automation" ]
+
+Run Integration tests[govern]:
+  extends: .integration_test
   variables:
     POSTGRES_DB: governdb
     POSTGRES_PORT: 5432
@@ -87,7 +88,7 @@ Run Integration tests[govern]:
   before_script:
     - cat $DATAIKU_LICENSE | base64 -d > /home/dataiku/license.json
 
-    - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json -t $DSS_NOTE_TYPE
+    - /home/dataiku/dataiku-dss-$DSS_VERSION/installer.sh -d $DSS_DATADIR -p $DSS_PORT -l /home/dataiku/license.json -t govern
     - echo "psql.jdbc.url=jdbc:postgresql://postgres:$POSTGRES_PORT/$POSTGRES_DB
     - echo "psql.jdbc.user=$POSTGRES_USER"
     - echo "psql.jdbc.password=$POSTGRES_PASSWORD"

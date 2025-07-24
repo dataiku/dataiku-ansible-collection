@@ -13,6 +13,12 @@
       AUTOMATION_SINGLE
       {% endif %}
 
+- debug:
+    var: deployment_mode
+
+- debug:
+    var: dss_connection_info.node_type
+
 - name: Create a code env
   dataiku.dss.dss_code_env:
     connect_to: "{{ dss_connection_info }}"
@@ -65,6 +71,9 @@
       - requests
       - datetime
   register: code_env_idem
+
+- debug:
+    var: code_env_idem
 
 - assert:
     that:

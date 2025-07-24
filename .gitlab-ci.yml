@@ -94,7 +94,7 @@ Run Integration tests:
     - echo "psql.jdbc.password=$POSTGRES_PASSWORD" >> $DSS_DATADIR/config/dip.properties
     - echo "dku.registration.channel=docker-image" >> $DSS_DATADIR/config/dip.properties
     - echo "dku.exports.chrome.sandbox=false" >> $DSS_DATADIR/config/dip.properties
-    - $DSS_DATADIR/bin/dss init-db
+    - $DSS_DATADIR/bin/govern-admin init-db
     - $DSS_DATADIR/bin/dss start
 
     - export PATH=/home/dataiku/.local/bin:$PATH

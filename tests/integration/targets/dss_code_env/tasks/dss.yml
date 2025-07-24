@@ -4,20 +4,14 @@
 ################################
 - name: Set deployment mode depending on node type
   ansible.builtin.set_fact:
-    deployment_mode: |-
-      {% if dss_connection_info.node_type == "design" %}
+    deployment_mode: >-
+      {%- if dss_connection_info.node_type == "design" -%}
       DESIGN_MANAGED
-      {% elif dss_connection_info.node_type == "automation" %}
+      {%- elif dss_connection_info.node_type == "automation" -%}
       AUTOMATION_VERSIONED
-      {% elif dss_connection_info.node_type == "deployer" %}
+      {%- elif dss_connection_info.node_type == "deployer" -%}
       AUTOMATION_SINGLE
-      {% endif %}
-
-- debug:
-    var: deployment_mode
-
-- debug:
-    var: dss_connection_info.node_type
+      {%- endif -%}
 
 - name: Create a code env
   dataiku.dss.dss_code_env:
@@ -71,9 +65,6 @@
       - requests
       - datetime
   register: code_env_idem
-
-- debug:
-    var: code_env_idem
 
 - assert:
     that:

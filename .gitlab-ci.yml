@@ -48,6 +48,7 @@ Run Unit tests:
   extends: .job_base
   stage: integration-tests
   image: $DATAIKU_COMMUNITY_DOCKER_IMAGE
+  resource_group: integration-tests # Limit the concurrency because jobs are too big
   variables:
     PIP_CACHE_DIR: "/home/dataiku/.cache/pip"
   cache:

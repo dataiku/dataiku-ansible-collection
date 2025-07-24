@@ -19,4 +19,3 @@
   register: general_settings
   failed_when:
     - not general_settings.msg is search("Node type api is not supported")
-

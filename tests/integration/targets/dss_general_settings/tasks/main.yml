@@ -11,10 +11,16 @@
   register: dss_connection_info
 
 ################################
-# Design, Api, Deployer, Automation, Govern Nodes
+# Design, Deployer, Automation, Govern Nodes
 ################################
-- name: Run tests for Design, Deployer, Automation nodes
+- name: Run tests for Design, Deployer, Automation, Govern nodes
   ansible.builtin.import_tasks: dss.yml
+
+################################
+# Api Nodes
+################################
+- name: Run tests for Api nodes
+  ansible.builtin.import_tasks: api.yml
 
 ################################
 # Design, Deployer, Automation Nodes

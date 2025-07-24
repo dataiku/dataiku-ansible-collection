@@ -1,0 +1,84 @@
+---
+################################
+# DSS General settings Creation
+################################
+- name: Setup audit trail
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    settings:
+      targets:
+        - type: EVENT_SERVER
+          url: "http://my-event-server:9999"
+          routingKeyMode: FROM_MESSAGE
+          topicsFiltering: SELECTED
+          topics:
+            - apinode-query
+          routingKeysFiltering: ALL
+          routingKeys:
+            - rk-clvs-1
+  register: general_settings
+
+- assert:
+    that:
+      - general_settings is changed
+      - general_settings.message == "MODIFIED"
+      - general_settings.dss_general_settings is defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    settings:
+      targets:
+        - type: "EVENT_SERVER"
+          url: "http://my-event-server:9999"
+          routingKeyMode: "FROM_MESSAGE"
+          topicsFiltering: "SELECTED"
+          topics:
+            - apinode-query
+          routingKeysFiltering: "ALL"
+          routingKeys:
+            - rk-clvs-1
+  register: general_settings_idem
+
+- assert:
+    that:
+      - general_settings_idem is not changed
+      - general_settings_idem.message == "UNCHANGED"
+      - general_settings_idem.dss_general_settings is defined
+      - general_settings_idem.dss_general_settings == general_settings.dss_general_settings
+      - general_settings_idem.previous_settings is defined
+
+################################
+# DSS General settings Update
+################################
+- name: Update audit trail
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    settings:
+      targets:
+        - type: EVENT_SERVER
+          url: "http://my-event-server:9999"
+          routingKeyMode: FROM_MESSAGE
+          topicsFiltering: SELECTED
+          topics:
+            - apinode-query
+          routingKeysFiltering: ALL
+          routingKeys:
+            - rk-clvs-1
+        - type: LOG4J
+          appendTopicToLogger: true
+          topicsFiltering: ALL
+          routingKeysFiltering: ALL
+  register: general_settings_update
+
+- assert:
+    that:
+      - general_settings_update is changed
+      - general_settings_update.message == "MODIFIED"
+      - general_settings_update.dss_general_settings is defined
+      - general_settings_update.dss_general_settings != general_settings.dss_general_settings
+      - general_settings_update.previous_settings is defined
+      - general_settings_update.previous_settings == general_settings_idem.previous_settings

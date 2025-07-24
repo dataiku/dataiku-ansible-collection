@@ -4,7 +4,7 @@
 ################################
 - name: Set deployment mode depending on node type
   ansible.builtin.set_fact:
-    deployment_mode: >-
+    deployment_mode: |-
       {% if dss_connection_info.node_type == "design" %}
       DESIGN_MANAGED
       {% elif dss_connection_info.node_type == "automation" %}

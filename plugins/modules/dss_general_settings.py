@@ -139,7 +139,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     build_template_from_fields
 )
 
-supported_node_types = ["design", "automation", "api", "deployer", "govern"]
+supported_node_types = ["design", "automation", "deployer", "govern"]
 encrypted_fields = [
     "ldapSettings.bindPassword", "ssoSettings.samlSPParams.keystorePassword", "ssoSettings.openIDParams.clientSecret",
     "azureADSettings.credentialsClientSecret", "azureADSettings.credentialsCertificatePassword"
@@ -188,7 +188,6 @@ def run_module():
             current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
             new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
             updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
-            # module.fail_json(msg=f"{current_smart_update_fields} {'___' * 10} {new_smart_update_fields} {'___' * 10} {new_smart_update_fields.keys()}")
             for key in new_smart_update_fields.keys():
                 if new_smart_update_fields[key]["executionConfigs"]:
                     updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(

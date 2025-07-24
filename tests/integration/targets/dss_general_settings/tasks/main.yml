@@ -18,15 +18,16 @@
   when: dss_connection_info.node_type in ["design", "deployer", "automation", "govern"]
 
 ################################
-# Api Nodes
-################################
-- name: Run tests for Api nodes
-  ansible.builtin.import_tasks: api.yml
-  when: dss_connection_info.node_type in ["api"]
 
-################################
 # Design, Deployer, Automation Nodes
 ################################
 - name: Run tests for Design, Deployer, Automation nodes
   ansible.builtin.import_tasks: smart_update.yml
   when: dss_connection_info.node_type in ["design", "deployer", "automation"]
+
+################################
+# Api Nodes
+################################
+- name: Run tests for Api nodes
+  ansible.builtin.import_tasks: not_supported.yml
+  when: dss_connection_info.node_type in ["api"]

@@ -1,0 +1,22 @@
+---
+################################
+# DSS General settings Creation
+################################
+- name: Setup audit trail
+  dataiku.dss.dss_general_settings:
+    connect_to: "{{ dss_connection_info }}"
+    settings:
+      targets:
+        - type: EVENT_SERVER
+          url: "http://my-event-server:9999"
+          routingKeyMode: FROM_MESSAGE
+          topicsFiltering: SELECTED
+          topics:
+            - apinode-query
+          routingKeysFiltering: ALL
+          routingKeys:
+            - rk-clvs-1
+  register: general_settings
+  failed_when:
+    - not general_settings.msg is search("Node type api is not supported")
+

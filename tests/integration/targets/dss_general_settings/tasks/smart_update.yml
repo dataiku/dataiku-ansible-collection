@@ -74,6 +74,9 @@
       - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | last == expected_spark_exec_config_udpate.conf
 
 
+################################
+# Check DSS General settings Execution Config Smart Update Idempotence
+################################
 - name: Check idempotence of Container Execution and Spark Configs Smart update
   dataiku.dss.dss_general_settings:
     connect_to: "{{ dss_connection_info }}"

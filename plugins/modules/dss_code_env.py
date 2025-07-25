@@ -196,7 +196,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
     add_dss_connection_args,
     get_client_from_parsed_args,
-    add_dataikuapi_to_path,
+    bootstrap_dataiku_module,
     update,
 )
 
@@ -226,9 +226,10 @@ def run_module():
     add_dss_connection_args(module_args)
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    add_dataikuapi_to_path(module)
+    bootstrap_dataiku_module(module)
 
     args = MakeNamespace(module.params)
+
     if args.lang not in ["PYTHON", "R"]:
         module.fail_json(
             msg="The lang attribute has invalid value '{}'. Must be either 'PYTHON' or 'R'.".format(args.lang)
@@ -280,6 +281,8 @@ def run_module():
         versioned_required_code_env_def["desc"]["installJupyterSupport"] = args.jupyter_support
 
     update_packages = False
+
+    module.fail_json(msg=f"{args.connect_to}")
 
     try:
         client = get_client_from_parsed_args(module, supported_node_types)

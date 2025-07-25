@@ -18,7 +18,6 @@
   when: dss_connection_info.node_type in ["design", "deployer", "automation", "govern"]
 
 ################################
-
 # Design, Deployer, Automation Nodes
 ################################
 - name: Run tests for Design, Deployer, Automation nodes

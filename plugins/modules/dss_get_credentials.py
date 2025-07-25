@@ -133,7 +133,8 @@ def run_module():
             api_keys_list = json.loads(api_keys) if api_keys and len(api_keys) > 0 else []
         else:
             try:
-                with open(Path(args.datadir) / ".ansible/dss-keys.json", "r") as f:
+                store_file = Path(os.path.expanduser('~/.ansible')) / "dataiku-dss-keyssss.json"
+                with open(store_file, "r") as f:
                     api_keys_list = json.load(f)
             except FileNotFoundError:
                 api_keys_list = []
@@ -178,12 +179,14 @@ def run_module():
                     ]
                     api_key = subprocess.check_output(create_command, text=True).strip()
                     # Saving the key to local file
-                    store_dir = Path(args.datadir) / ".ansible"
-                    store_file = store_dir / "dss-keys.json"
+                    store_dir = Path(os.path.expanduser('~/.ansible'))
+                    store_file = store_dir / "dataiku-dss-keyssss.json"
                     if not store_dir.exists():
                         os.mkdir(store_dir)
+                    if not store_file.exists():
                         store_file.touch()
-                    with open(store_file, "w") as f:
+                        os.chmod(store_file, 0o600)
+                    with open(store_file, "a") as f:
                         api_keys_list.append({"label": args.api_key_name, "key": api_key})
                         json.dump(api_keys_list, f)
             elif nodetype == "api":

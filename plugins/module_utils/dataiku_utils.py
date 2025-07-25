@@ -51,6 +51,17 @@ def discover_install_dir_python(data_dir):
         return
 
 
+def bootstrap_dataiku_module(module):
+    if module.params.get("connect_to"):
+        if module.params["connect_to"].get("node_type"):
+            module.no_log_values.remove(module.params['connect_to']['node_type'])
+        if module.params["connect_to"].get("data_dir"):
+            module.no_log_values.remove(module.params['connect_to']['data_dir'])
+        if module.params["connect_to"].get("port"):
+            module.no_log_values.remove(module.params['connect_to']['port'])
+    add_dataikuapi_to_path(module)
+
+
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
@@ -74,7 +85,7 @@ def add_dataikuapi_to_path(module):
 def add_dss_connection_args(module_args):
     module_args.update(
         {
-            "connect_to": dict(type="dict", required=False),
+            "connect_to": dict(type="dict", required=False, default=None, no_log=True),
             "host": dict(type="str", required=False, default="127.0.0.1"),
             "port": dict(type="str", required=False, default=None),
             "api_key": dict(type="str", required=False, default=None, no_log=True),

@@ -141,7 +141,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
     add_dss_connection_args,
     get_client_from_parsed_args,
-    add_dataikuapi_to_path,
+    bootstrap_dataiku_module,
 )
 
 supported_node_types = ["design", "deployer"]
@@ -161,7 +161,7 @@ def run_module():
     add_dss_connection_args(module_args)
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    add_dataikuapi_to_path(module)
+    bootstrap_dataiku_module(module)
 
     args = MakeNamespace(module.params)
     result = dict(changed=False, message="UNCHANGED", id=args.id, )

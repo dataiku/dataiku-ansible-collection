@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import logging
 
 ANSIBLE_METADATA = {"metadata_version": "1.1", "status": ["preview"], "supported_by": "dataiku-ansible-collection"}
 
@@ -132,7 +133,7 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     add_dss_connection_args,
     extract_keys,
     get_client_from_parsed_args,
-    add_dataikuapi_to_path,
+    bootstrap_dataiku_module,
     update,
     exclude_keys,
     smart_update_named_lists,
@@ -159,7 +160,9 @@ def run_module():
     add_dss_connection_args(module_args)
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    add_dataikuapi_to_path(module)
+    logging.error(msg=['-'.join(list(e)) for e in module.no_log_values])
+    logging.error(msg='govern' in module.no_log_values)
+    bootstrap_dataiku_module(module)
 
     args = MakeNamespace(module.params)
 

@@ -11,14 +11,14 @@
   register: dss_connection_info
 
 ################################
-# Design, Automation Nodes
+# Design, Deployer, Automation Nodes
 ################################
 - name: Run tests for Design, Deployer, Automation nodes
   ansible.builtin.import_tasks: dss.yml
   when: dss_connection_info.node_type in ["design", "automation", "deployer"]
 
 ################################
-# Api, Deployer, Govern Nodes
+# Api, Govern Nodes
 ################################
 - name: Run tests for Api, Govern nodes
   ansible.builtin.import_tasks: not_supported.yml

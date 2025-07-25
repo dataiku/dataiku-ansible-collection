@@ -18,22 +18,15 @@
     connect_to: "{{ dss_connection_info }}"
     name: ansible-collection-test
     deployment_mode: "{{ deployment_mode }}"
-    version: 1
     state: present
     lang: PYTHON
     owner: ansible
     python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
     package_list:
       - openpyxl
       - matplotlib
-      - tabula-py
-      - altair
-      - bokeh
-      - dash
-      - nbformat==4.2.0
-      - plotly==4.14.3
-      - requests
-      - datetime
   register: code_env
 
 - assert:
@@ -50,22 +43,15 @@
     connect_to: "{{ dss_connection_info }}"
     name: ansible-collection-test
     deployment_mode: "{{ deployment_mode }}"
-    version: 1
     state: present
     lang: PYTHON
     owner: ansible
     python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
     package_list:
       - openpyxl
       - matplotlib
-      - tabula-py
-      - altair
-      - bokeh
-      - dash
-      - nbformat==4.2.0
-      - plotly==4.14.3
-      - requests
-      - datetime
   register: code_env_idem
 
 - assert:
@@ -82,14 +68,15 @@
     connect_to: "{{ dss_connection_info }}"
     name: ansible-collection-test
     deployment_mode: "{{ deployment_mode }}"
-    version: 2
     state: present
     lang: PYTHON
     owner: ansible
     python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
     package_list:
-      - nbformat==4.2.0
-      - plotly==4.14.3
+      - requests
+      - datetime
   register: code_env_update
 
 - assert:

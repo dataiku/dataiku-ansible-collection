@@ -282,8 +282,6 @@ def run_module():
 
     update_packages = False
 
-    module.fail_json(msg=f"{args.connect_to}")
-
     try:
         client = get_client_from_parsed_args(module, supported_node_types)
         code_envs = client.list_code_envs()

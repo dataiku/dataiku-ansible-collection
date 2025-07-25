@@ -353,6 +353,8 @@ def run_module():
                     raise Exception("The argument deployment_mode is mandatory to create a code env")
                 if args.python_interpreter is not None:
                     versioned_required_code_env_def["pythonInterpreter"] = args.python_interpreter
+                if args.version is not None:
+                    raise Exception("Creating versioned code environments is not supported")
                 code_env = client.create_code_env(args.lang, args.name, args.deployment_mode, required_code_env_def)
                 code_env_def = code_env.get_definition()
                 new_code_env_def = copy.deepcopy(code_env_def)

@@ -47,3 +47,4 @@ plugins/modules/dss_system_facts.py validate-modules:invalid-documentation # ign
 plugins/modules/dss_user.py validate-modules:invalid-documentation # ignore author format check
 plugins/inventory/fm_dss.py validate-modules:invalid-documentation # ignore author format check
 plugins/modules/dss_get_credentials.py pylint:logging-format-interpolation
+plugins/modules/dss_get_credentials.py use-argspec-type-path # false positive

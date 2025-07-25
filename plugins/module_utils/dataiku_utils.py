@@ -128,7 +128,7 @@ def get_client_from_parsed_args(module, supported_node_types):
 
     if node_type not in supported_node_types:
         module.fail_json(
-            msg="Node type {} is not supported. See the list of supported nodes for this module {}".format(node_type, supported_node_types)
+            msg="Node type {} is not supported. Supported node types are {}".format(node_type, supported_node_types)
         )
 
     if node_type == "govern":

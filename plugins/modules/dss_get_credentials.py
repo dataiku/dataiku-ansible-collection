@@ -186,7 +186,7 @@ def run_module():
                     if not store_file.exists():
                         store_file.touch()
                         os.chmod(store_file, 0o600)
-                    with open(store_file, "a") as f:
+                    with open(store_file, "w") as f:
                         api_keys_list.append({"label": args.api_key_name, "key": api_key})
                         json.dump(api_keys_list, f)
             elif nodetype == "api":

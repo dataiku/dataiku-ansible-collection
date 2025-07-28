@@ -38,6 +38,11 @@ options:
         description:
             - The path of the datadir where DSS is installed
         required: false
+    node_type:
+        type: str
+        description:
+            - The DSS node type
+        required: false
     state:
         type: str
         description:
@@ -136,14 +141,14 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     MakeNamespace,
     add_dss_connection_args,
     get_client_from_parsed_args,
-    add_dataikuapi_to_path,
+    bootstrap_dataiku_module,
 )
+
+supported_node_types = ["design", "deployer"]
 
 
 # TODO: make idempotent
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
     module_args = dict(
         state=dict(type="str", required=False, default="present"),
         id=dict(type="str", required=True),
@@ -156,7 +161,7 @@ def run_module():
     add_dss_connection_args(module_args)
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    add_dataikuapi_to_path(module)
+    bootstrap_dataiku_module(module)
 
     args = MakeNamespace(module.params)
     result = dict(changed=False, message="UNCHANGED", id=args.id, )
@@ -166,7 +171,7 @@ def run_module():
     create = False
     infra = None
     try:
-        client = get_client_from_parsed_args(module)
+        client = get_client_from_parsed_args(module, supported_node_types)
         api_deployer = client.get_apideployer()
         infras_status = api_deployer.list_infras(as_objects=False)
         infras_id = []

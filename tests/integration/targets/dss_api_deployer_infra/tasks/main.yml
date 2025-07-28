@@ -11,83 +11,15 @@
   register: dss_connection_info
 
 ################################
-# DSS API deployer infrastructure Creation
+# Design, Deployer Nodes
 ################################
-- name: Create an API deployer infrastructure
-  dataiku.dss.dss_api_deployer_infra:
-    connect_to: "{{ dss_connection_info }}"
-    id: ansible-collection-test
-    state: present
-    type: STATIC
-    stage: Development
-    api_nodes:
-      - url: "http://localhost:{{ dss_connection_info.port }}/"
-        admin_api_key: "{{ dss_connection_info.api_key }}"
-        graphite_prefix: apinode
-    permissions:
-      - group: "data_team"
-        read: true
-        deploy: true
-        admin: false
-  register: api_deployer_infra
-
-- assert:
-    that:
-      - api_deployer_infra is changed
-      - api_deployer_infra.message == "CREATED"
+- name: Run tests for Design, Deployer nodes
+  ansible.builtin.import_tasks: dss.yml
+  when: dss_connection_info.node_type in ["design", "deployer"]
 
 ################################
-# Check Module idempotence
+# Api, Automation, Govern Nodes
 ################################
-# Note: Module is not idempotent because of encrypted api keys
-#- name: Check module idempotence
-#  dataiku.dss.dss_api_deployer_infra:
-#    connect_to: "{{ dss_connection_info }}"
-#    id: ansible-collection-test
-#    state: present
-#    type: STATIC
-#    stage: Development
-#    api_nodes:
-#      - url: "http://localhost:{{ dss_connection_info.port }}/"
-#        admin_api_key: "{{ dss_connection_info.api_key }}"
-#        graphite_prefix: apinode
-#    permissions:
-#      - group: "data_team"
-#        read: true
-#        deploy: true
-#        admin: false
-#  register: api_deployer_infra_idem
-#
-#- assert:
-#    that:
-#      - api_deployer_infra_idem is not changed
-#      - api_deployer_infra_idem.message == "UNCHANGED"
-
-################################
-# DSS API deployer infrastructure Update
-################################
-- name: Update an API deployer infrastructure
-  dataiku.dss.dss_api_deployer_infra:
-    connect_to: "{{ dss_connection_info }}"
-    id: ansible-collection-test
-    state: present
-    type: STATIC
-    stage: Production
-    api_nodes:
-      - url: "http://localhost:{{ dss_connection_info.port }}/"
-        admin_api_key: "{{ dss_connection_info.api_key }}"
-        graphite_prefix: apinode
-      - url: "http://localhost:{{ dss_connection_info.port }}/"
-        admin_api_key: "{{ dss_connection_info.api_key }}"
-        graphite_prefix: apinode2
-    permissions:
-      - group: "data_team"
-        read: true
-        deploy: true
-        admin: false
-  register: api_deployer_infra_update
-
-- assert:
-    that:
-      - api_deployer_infra_update is changed
-      - api_deployer_infra_update.message == "MODIFIED"
+- name: Run tests for Api, Automation, Govern nodes
+  ansible.builtin.import_tasks: not_supported.yml
+  when: dss_connection_info.node_type in ["api", "automation", "govern"]

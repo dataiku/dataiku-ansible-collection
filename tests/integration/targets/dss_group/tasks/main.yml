@@ -11,102 +11,23 @@
   register: dss_connection_info
 
 ################################
-# DSS group Creation
+# Design, Deployer, Automation Nodes
 ################################
-- name: Create a dss group
-  dataiku.dss.dss_group:
-    state: present
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    admin: false
-    source_type: LDAP
-    may_create_projects_from_macros: true
-    may_create_projects_from_templates: true
-    may_create_active_web_content: true
-    may_create_published_API_services: true
-    may_create_published_projects: true
-    ldap_group_names:
-      - dss-users
-  register: dss_group
-
-- assert:
-    that:
-      - dss_group is changed
-      - dss_group.message == "CREATED"
-      - dss_group.group_def is defined
-      - dss_group.previous_group_def is not defined
+- name: Run tests for Design, Deployer, Automation nodes
+  ansible.builtin.import_tasks: dss.yml
+  when: dss_connection_info.node_type in ["design", "deployer", "automation"]
 
 ################################
-# Check module idempotence
+# Govern Nodes
 ################################
-- name: Check module idempotence
-  dataiku.dss.dss_group:
-    state: present
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    admin: false
-    source_type: LDAP
-    may_create_projects_from_macros: true
-    may_create_projects_from_templates: true
-    may_create_active_web_content: true
-    may_create_published_API_services: true
-    may_create_published_projects: true
-    ldap_group_names:
-      - dss-users
-  register: dss_group_idem
-
-- assert:
-    that:
-      - dss_group_idem is not changed
-      - dss_group_idem.message == "UNCHANGED"
-      - dss_group_idem.group_def is defined
-      - dss_group_idem.group_def == dss_group.group_def
-      - dss_group_idem.previous_group_def is defined
-      - dss_group_idem.previous_group_def == dss_group.group_def
+- name: Run tests for Govern nodes
+  ansible.builtin.import_tasks: govern.yml
+  when: dss_connection_info.node_type == "govern"
 
 ################################
-# DSS group Update
+# Api Nodes
 ################################
-- name: Update a dss group
-  dataiku.dss.dss_group:
-    state: present
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    admin: true
-    source_type: LDAP
-    may_create_projects_from_macros: false
-    may_create_projects_from_templates: false
-    may_create_active_web_content: false
-    may_create_published_API_services: false
-    may_create_published_projects: false
-    ldap_group_names:
-      - dss-users
-  register: dss_group_update
 
-- assert:
-    that:
-      - dss_group_update is changed
-      - dss_group_update.message == "MODIFIED"
-      - dss_group_update.group_def is defined
-      - dss_group_update.group_def != dss_group.group_def
-      - dss_group_update.previous_group_def is defined
-      - dss_group_update.previous_group_def == dss_group_idem.group_def
-
-################################
-# DSS group Deletion
-################################
-- name: Delete a dss group
-  dataiku.dss.dss_group:
-    state: absent
-    connect_to: "{{ dss_connection_info }}"
-    name: ansible-collection-test
-    source_type: LDAP
-  register: dss_group_delete
-
-- assert:
-    that:
-      - dss_group_delete is changed
-      - dss_group_delete.message == "DELETED"
-      - dss_group_delete.group_def is not defined
-      - dss_group_delete.previous_group_def is defined
-      - dss_group_delete.previous_group_def == dss_group_update.group_def
+- name: Run tests for Api nodes
+  ansible.builtin.import_tasks: not_supported.yml
+  when: dss_connection_info.node_type == "api"

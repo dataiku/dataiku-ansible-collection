@@ -1,0 +1,14 @@
+---
+################################
+# Install DSS plugin
+################################
+- name: Install plugin from the store
+  dataiku.dss.dss_plugin:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    plugin_id: geocoder
+  register: dss_plugin
+  failed_when: >
+    (not dss_plugin.msg is search("Node type api is not supported")) and
+    (not dss_plugin.msg is search("Node type govern is not supported"))
+    

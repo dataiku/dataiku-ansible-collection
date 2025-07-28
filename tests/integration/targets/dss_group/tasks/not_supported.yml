@@ -1,0 +1,16 @@
+---
+################################
+# DSS group Creation
+################################
+- name: Create a dss group
+  dataiku.dss.dss_group:
+    state: present
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    admin: false
+    source_type: LDAP
+    ldap_group_names:
+      - dss-users
+  register: dss_group
+  failed_when:
+    - not dss_group.msg is search("Node type api is not supported")

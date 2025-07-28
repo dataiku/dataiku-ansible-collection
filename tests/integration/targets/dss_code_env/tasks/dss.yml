@@ -1,0 +1,104 @@
+---
+################################
+# DSS code env Creation
+################################
+- name: Set deployment mode depending on node type
+  ansible.builtin.set_fact:
+    deployment_mode: >-
+      {%- if dss_connection_info.node_type == "design" -%}
+      DESIGN_MANAGED
+      {%- elif dss_connection_info.node_type == "automation" -%}
+      AUTOMATION_SINGLE
+      {%- elif dss_connection_info.node_type == "deployer" -%}
+      AUTOMATION_SINGLE
+      {%- endif -%}
+
+- name: Create a code env
+  dataiku.dss.dss_code_env:
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    deployment_mode: "{{ deployment_mode }}"
+    state: present
+    lang: PYTHON
+    owner: ansible
+    python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
+    package_list:
+      - openpyxl
+      - matplotlib
+  register: code_env
+
+- assert:
+    that:
+      - code_env is changed
+      - code_env.message == "CREATED"
+      - code_env.dss_code_env is defined
+
+################################
+# Check module idempotence
+################################
+- name: Check module idempotence
+  dataiku.dss.dss_code_env:
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    deployment_mode: "{{ deployment_mode }}"
+    state: present
+    lang: PYTHON
+    owner: ansible
+    python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
+    package_list:
+      - openpyxl
+      - matplotlib
+  register: code_env_idem
+
+- assert:
+    that:
+      - code_env_idem is not changed
+      - code_env_idem.message == "UNCHANGED"
+      - code_env_idem.dss_code_env == code_env.dss_code_env
+
+################################
+# DSS code env Update
+################################
+- name: Update a code env
+  dataiku.dss.dss_code_env:
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    deployment_mode: "{{ deployment_mode }}"
+    state: present
+    lang: PYTHON
+    owner: ansible
+    python_interpreter: PYTHON39
+    core_packages: false
+    jupyter_support: false
+    package_list:
+      - requests
+      - datetime
+  register: code_env_update
+
+- assert:
+    that:
+      - code_env_update is changed
+      - code_env_update.message == "MODIFIED"
+      - code_env_update.dss_code_env != code_env.dss_code_env
+
+################################
+# DSS code env Deletion
+################################
+- name: Delete a code env
+  dataiku.dss.dss_code_env:
+    connect_to: "{{ dss_connection_info }}"
+    name: ansible-collection-test
+    deployment_mode: "{{ deployment_mode }}"
+    state: absent
+    lang: PYTHON
+  register: code_env_delete
+
+- assert:
+    that:
+      - code_env_delete is changed
+      - code_env_delete.message == "DELETED"
+      - code_env_delete.dss_code_env is not defined

@@ -11,213 +11,22 @@
   register: dss_connection_info
 
 ################################
-# DSS General settings Creation
+# Design, Deployer, Automation, Govern Nodes
 ################################
-- name: Setup LDAP connectivity
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    silent_update_secrets: true
-    settings:
-      ldapSettings:
-        enabled: true
-        url: ldap://ldap.internal.example.com/dc=example,dc=com
-        bindDN: uid=readonly,ou=users,dc=example,dc=com
-        bindPassword: theserviceaccountpassword
-        useTls: false
-        autoImportUsers: true
-        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
-        defaultUserProfile: READER
-        displayNameAttribute: gecos
-        emailAttribute: mail
-        enableGroups: true
-        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
-        groupNameAttribute: cn
-        groupProfiles: [ ]
-        # Note: LDAP setting test cannot have authorized groups as the type changed in version 12.6.0 from
-        # a string of coma-separated group names to a list of group names
-        # authorizedGroups:
-        #   - dss-users
-  register: general_settings
-
-- assert:
-    that:
-      - general_settings is changed
-      - general_settings.message == "MODIFIED"
-      - general_settings.dss_general_settings is defined
+- name: Run tests for Design, Deployer, Automation, Govern nodes
+  ansible.builtin.import_tasks: dss.yml
+  when: dss_connection_info.node_type in ["design", "deployer", "automation", "govern"]
 
 ################################
-# Check module idempotence
+# Design, Deployer, Automation Nodes
 ################################
-- name: Check module idempotence
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    silent_update_secrets: true
-    settings:
-      ldapSettings:
-        enabled: true
-        url: ldap://ldap.internal.example.com/dc=example,dc=com
-        bindDN: uid=readonly,ou=users,dc=example,dc=com
-        bindPassword: theserviceaccountpassword
-        useTls: false
-        autoImportUsers: true
-        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
-        defaultUserProfile: READER
-        displayNameAttribute: gecos
-        emailAttribute: mail
-        enableGroups: true
-        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
-        groupNameAttribute: cn
-        groupProfiles: [ ]
-        # authorizedGroups:
-        #   - dss-users
-  register: general_settings_idem
-
-- assert:
-    that:
-      - general_settings_idem is not changed
-      - general_settings_idem.message == "UNCHANGED"
-      - general_settings_idem.dss_general_settings is defined
-      - general_settings_idem.dss_general_settings == general_settings.dss_general_settings
-      - general_settings_idem.previous_settings is defined
+- name: Run tests for Design, Deployer, Automation nodes
+  ansible.builtin.import_tasks: smart_update.yml
+  when: dss_connection_info.node_type in ["design", "deployer", "automation"]
 
 ################################
-# DSS General settings Update
+# Api Nodes
 ################################
-- name: Update LDAP connectivity
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    silent_update_secrets: true
-    settings:
-      ldapSettings:
-        enabled: true
-        url: ldap://ldap.example.com/dc=example,dc=com
-        bindDN: uid=readonly,ou=users,dc=example,dc=com
-        bindPassword: anothertheserviceaccountpassword
-        useTls: true
-        autoImportUsers: true
-        userFilter: (&(objectClass=posixAccount)(uid={USERNAME}))
-        defaultUserProfile: READER
-        displayNameAttribute: gecos
-        emailAttribute: mail
-        enableGroups: true
-        groupFilter: (&(objectClass=posixGroup)(memberUid={USERDN}))
-        groupNameAttribute: cn
-        groupProfiles: [ ]
-        # authorizedGroups:
-        #   - dss-users
-  register: general_settings_update
-
-- assert:
-    that:
-      - general_settings_update is changed
-      - general_settings_update.message == "MODIFIED"
-      - general_settings_update.dss_general_settings is defined
-      - general_settings_update.dss_general_settings | ansible.utils.remove_keys(target=['bindPassword']) != general_settings.dss_general_settings | ansible.utils.remove_keys(target=['bindPassword'])
-      - general_settings_update.previous_settings is defined
-      - general_settings_update.previous_settings | ansible.utils.remove_keys(target=['bindPassword']) == general_settings_idem.previous_settings | ansible.utils.remove_keys(target=['bindPassword'])
-
-################################
-# DSS General settings Execution Config Smart Update
-################################
-- name: Create Container Execution Config and Spark Execution Config
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    settings:
-      containerSettings:
-        executionConfigs:
-          - name: ansible-collection-1
-            type: DOCKER
-            usableBy: ALLOWED
-            allowedGroups:
-              - administrators
-          - name: ansible-collection-2
-            type: DOCKER
-      sparkSettings:
-        executionConfigs:
-          - name: ansible-collection-1
-            description: ansible collection testing description
-          - name: ansible-collection-2
-  register: container_and_spark_configs
-
-- name: Smart update Container Execution and Spark Configs
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    settings:
-      containerSettings:
-        executionConfigs:
-          - name: ansible-collection-1
-            ensureNamespaceCompliance: true
-          - name: ansible-collection-2
-            repositoryURL: dummy-ansible-collection-registry/root-repository
-      sparkSettings:
-        executionConfigs:
-          - name: ansible-collection-2
-            conf:
-              - key: spark.executor.memory
-                value: 12g
-                isFinal: false
-                secret: false
-              - key: spark.port.maxRetries
-                value: '1'
-                isFinal: false
-                secret: false
-  register: smart_update
-
-- name: prepare facts for assertions
-  set_fact:
-    expected_container_exec_config_udpate:
-      repositoryURL: dummy-ansible-collection-registry/root-repository
-      ensureNamespaceCompliance: true
-    expected_spark_exec_config_udpate:
-      conf:
-        - key: spark.executor.memory
-          value: 12g
-          isFinal: false
-          secret: false
-        - key: spark.port.maxRetries
-          value: '1'
-          isFinal: false
-          secret: false
-
-- assert:
-    that:
-      - smart_update is changed
-      - smart_update.message == "MODIFIED"
-      - smart_update.dss_general_settings is defined
-      - smart_update.previous_settings is defined
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | length == 1
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].repositoryURL') | first == expected_container_exec_config_udpate.repositoryURL
-      - smart_update.dss_general_settings | json_query('containerSettings.executionConfigs[*].ensureNamespaceCompliance') | first == expected_container_exec_config_udpate.ensureNamespaceCompliance
-      - smart_update.dss_general_settings | json_query('sparkSettings.executionConfigs[*].conf') | last == expected_spark_exec_config_udpate.conf
-
-
-- name: Check idempotence of Container Execution and Spark Configs Smart update
-  dataiku.dss.dss_general_settings:
-    connect_to: "{{ dss_connection_info }}"
-    settings:
-      containerSettings:
-        executionConfigs:
-          - name: ansible-collection-1
-            ensureNamespaceCompliance: true
-          - name: ansible-collection-2
-            repositoryURL: dummy-ansible-collection-registry/root-repository
-      sparkSettings:
-        executionConfigs:
-          - name: ansible-collection-2
-            conf:
-              - key: spark.executor.memory
-                value: 12g
-                isFinal: false
-                secret: false
-              - key: spark.port.maxRetries
-                value: '1'
-                isFinal: false
-                secret: false
-  register: smart_update_idem
-
-- assert:
-    that:
-      - smart_update_idem is not changed
-      - smart_update_idem.message == "UNCHANGED"
-      - smart_update_idem.dss_general_settings is defined
-      - smart_update_idem.previous_settings is defined
+- name: Run tests for Api nodes
+  ansible.builtin.import_tasks: not_supported.yml
+  when: dss_connection_info.node_type in ["api"]

@@ -51,6 +51,17 @@ def discover_install_dir_python(data_dir):
         return
 
 
+def bootstrap_dataiku_module(module):
+    if module.params.get("connect_to"):
+        if module.params["connect_to"].get("node_type"):
+            module.no_log_values.remove(module.params['connect_to']['node_type'])
+        if module.params["connect_to"].get("data_dir"):
+            module.no_log_values.remove(module.params['connect_to']['data_dir'])
+        if module.params["connect_to"].get("port"):
+            module.no_log_values.remove(module.params['connect_to']['port'])
+    add_dataikuapi_to_path(module)
+
+
 def add_dataikuapi_to_path(module):
     args = MakeNamespace(module.params)
 
@@ -74,18 +85,17 @@ def add_dataikuapi_to_path(module):
 def add_dss_connection_args(module_args):
     module_args.update(
         {
-            "connect_to": dict(type="dict", required=False, no_log=True),
+            "connect_to": dict(type="dict", required=False, default=None, no_log=True),
             "host": dict(type="str", required=False, default="127.0.0.1"),
             "port": dict(type="str", required=False, default=None),
             "api_key": dict(type="str", required=False, default=None, no_log=True),
+            "node_type": dict(type="str", required=False, default=None),
             "data_dir": dict(type="str", required=False, default=None),
         }
     )
 
 
-def get_client_from_parsed_args(module):
-    from dataikuapi.dssclient import DSSClient
-
+def get_client_from_parsed_args(module, supported_node_types):
     args = MakeNamespace(module.params)
     api_key = os.environ.get("DATAIKU_ANSIBLE_DSS_API_KEY", None)
     if args.api_key:
@@ -110,7 +120,23 @@ def get_client_from_parsed_args(module):
     elif args.connect_to and "host" in args.connect_to:
         host = args.connect_to["host"]
 
-    client = DSSClient(f"http://{host}:{port}", api_key=api_key)
+    node_type = os.environ.get("DATAIKU_ANSIBLE_DSS_NODE_TYPE", "design")
+    if args.node_type:
+        node_type = args.node_type
+    elif args.connect_to and "node_type" in args.connect_to:
+        node_type = args.connect_to["node_type"]
+
+    if node_type not in supported_node_types:
+        module.fail_json(
+            msg="Node type {} is not supported. Supported node types are {}".format(node_type, supported_node_types)
+        )
+
+    if node_type == "govern":
+        from dataikuapi.govern_client import GovernClient
+        client = GovernClient(f"http://{host}:{port}", api_key=api_key)
+    else:
+        from dataikuapi.dssclient import DSSClient
+        client = DSSClient(f"http://{host}:{port}", api_key=api_key)
 
     return client
 

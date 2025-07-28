@@ -58,6 +58,10 @@ data_dir:
     returned: on success
     description: DSS datadir path
     type: str
+node_type:
+    returned: on success
+    description: DSS node type
+    type: str
 """
 
 import json
@@ -66,14 +70,13 @@ import os
 import subprocess
 import traceback
 
+from pathlib import Path
 from ansible.module_utils import six
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import MakeNamespace
 
 
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
     module_args = dict(
         datadir=dict(type="str", required=True),
         api_key_name=dict(type="str", required=False, default="dss-ansible-admin"),
@@ -115,17 +118,27 @@ def run_module():
         changed = False
         api_key = None
         value_type = None
-        exec_name = "apinode-admin" if nodetype == "api" else "dsscli"
+        create = False
 
-        api_keys = subprocess.check_output(
-            [
-                "{}/bin/{}".format(args.datadir, exec_name),
-                "admin-keys-list" if nodetype == "api" else "api-keys-list",
-                "--output",
-                "json",
-            ]
-        )
-        api_keys_list = json.loads(api_keys) if api_keys and len(api_keys) > 0 else []
+        if nodetype != "govern":
+            exec_name = "apinode-admin" if nodetype == "api" else "dsscli"
+            api_keys = subprocess.check_output(
+                [
+                    "{}/bin/{}".format(args.datadir, exec_name),
+                    "admin-keys-list" if nodetype == "api" else "api-keys-list",
+                    "--output",
+                    "json",
+                ]
+            )
+            api_keys_list = json.loads(api_keys) if api_keys and len(api_keys) > 0 else []
+        else:
+            try:
+                store_file = Path(os.path.expanduser('~/.ansible')) / "dataiku-dss-keys.json"
+                with open(store_file, "r") as f:
+                    api_keys_list = json.load(f)
+            except FileNotFoundError:
+                api_keys_list = []
+
         for key in api_keys_list:
             if key.get("label", None) == args.api_key_name:
                 if key["key"] == "******":
@@ -139,7 +152,7 @@ def run_module():
                 break
 
         if not module.check_mode:
-            if api_key is not None:
+            if api_key is not None and nodetype != "govern":
                 # delete existing key
                 if nodetype == "api":
                     delete_command = [
@@ -157,26 +170,58 @@ def run_module():
                 subprocess.check_output(delete_command)
 
             # Create new key
-            create_command = [
-                "{}/bin/{}".format(args.datadir, exec_name),
-                "admin-key-create" if nodetype == "api" else "api-key-create",
-                "--output",
-                "json",
-                "--label",
-                args.api_key_name,
-            ]
-            if nodetype != "api":
-                create_command += ["--admin", "true"]
-            api_keys_list = json.loads(subprocess.check_output(create_command))
-            if nodetype == "api":
+            if nodetype == "govern":
+                if api_key is None:
+                    create = True
+                    create_command = [
+                        "{}/bin/{}".format(args.datadir, "dkugovern"),
+                        "add-admin-api-key",
+                    ]
+                    api_key = subprocess.check_output(create_command, text=True).strip()
+                    # Saving the key to local file
+                    store_dir = Path(os.path.expanduser('~/.ansible'))
+                    store_file = store_dir / "dataiku-dss-keys.json"
+                    if not store_dir.exists():
+                        os.mkdir(store_dir)
+                    if not store_file.exists():
+                        store_file.touch()
+                        os.chmod(store_file, 0o600)
+                    with open(store_file, "w") as f:
+                        api_keys_list.append({"label": args.api_key_name, "key": api_key})
+                        json.dump(api_keys_list, f)
+            elif nodetype == "api":
+                create = True
+                create_command = [
+                    "{}/bin/{}".format(args.datadir, exec_name),
+                    "admin-key-create",
+                    "--output",
+                    "json",
+                    "--label",
+                    args.api_key_name,
+                ]
+                api_keys_list = json.loads(subprocess.check_output(create_command))
                 api_key = api_keys_list["key"]
             else:
+                create = True
+                create_command = [
+                    "{}/bin/{}".format(args.datadir, exec_name),
+                    "api-key-create",
+                    "--output",
+                    "json",
+                    "--label",
+                    args.api_key_name,
+                    "--admin",
+                    "true"
+                ]
+                api_keys_list = json.loads(subprocess.check_output(create_command))
                 api_key = api_keys_list[0]["key"]
-            logging.info('Created new API Key labeled "{}".'.format(args.api_key_name))
-            changed = True
+
+            if create:
+                logging.info('Created new API Key labeled "{}".'.format(args.api_key_name))
+                changed = True
 
         # Build result
-        result = dict(changed=changed, port=port, api_key=api_key, data_dir=args.datadir)
+        result = dict(changed=changed, port=port, api_key=api_key, data_dir=args.datadir, node_type=nodetype)
 
         module.exit_json(**result)
     except Exception as e:

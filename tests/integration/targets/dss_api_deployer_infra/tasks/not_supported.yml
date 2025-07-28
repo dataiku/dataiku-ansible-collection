@@ -1,0 +1,25 @@
+---
+################################
+# DSS API deployer infrastructure Creation
+################################
+- name: Create an API deployer infrastructure
+  dataiku.dss.dss_api_deployer_infra:
+    connect_to: "{{ dss_connection_info }}"
+    id: ansible-collection-test
+    state: present
+    type: STATIC
+    stage: Development
+    api_nodes:
+      - url: "http://localhost:{{ dss_connection_info.port }}/"
+        admin_api_key: "{{ dss_connection_info.api_key }}"
+        graphite_prefix: apinode
+    permissions:
+      - group: "data_team"
+        read: true
+        deploy: true
+        admin: false
+  register: api_deployer_infra
+  failed_when: >
+    (not api_deployer_infra.msg is search("Node type api is not supported")) and
+    (not api_deployer_infra.msg is search("Node type automation is not supported")) and
+    (not api_deployer_infra.msg is search("Node type govern is not supported"))

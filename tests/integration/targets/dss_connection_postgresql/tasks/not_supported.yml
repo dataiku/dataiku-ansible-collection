@@ -1,0 +1,18 @@
+---
+################################
+# DSS postgresql connection Creation
+################################
+- name: Create a postgresql connection
+  dataiku.dss.dss_connection_postgresql:
+    connect_to: "{{ dss_connection_info }}"
+    state: present
+    name: ansible-collection-test
+    postgresql_host: localhost
+    postgresql_port: "5432"
+    user: ansible
+    password: P@ssW0rd
+    database: ansible
+  register: pg_connection
+  failed_when: >
+    (not pg_connection.msg is search("Node type api is not supported")) and
+    (not pg_connection.msg is search("Node type govern is not supported"))

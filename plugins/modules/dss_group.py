@@ -39,6 +39,11 @@ options:
         description:
             - The path of the datadir where DSS is installed
         required: false
+    node_type:
+        type: str
+        description:
+            - The DSS node type
+        required: false
     name:
         type: str
         description:
@@ -208,7 +213,6 @@ options:
         description:
             - Whether the group allows to write safe code
         required: false
-        default: true
     may_write_unsafe_code:
         type: bool
         description:
@@ -223,6 +227,11 @@ options:
         type: str
         description:
             - Whether the group allows to obtain an API ticket from cookies for groups regex
+        required: false
+    may_manage_govern:
+        type: bool
+        description:
+            - Whether the group allows to manage Govern
         required: false
 
 author:
@@ -313,9 +322,10 @@ from ansible_collections.dataiku.dss.plugins.module_utils.dataiku_utils import (
     is_version_more_recent,
     add_dss_connection_args,
     get_client_from_parsed_args,
-    add_dataikuapi_to_path
+    bootstrap_dataiku_module
 )
 
+supported_node_types = ["design", "automation", "deployer", "govern"]
 group_args_to_settings = {
     "ldap_group_names": "ldapGroupNames",
     "sso_group_names": "ssoGroupNames",
@@ -325,9 +335,8 @@ group_args_to_settings = {
 
 
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
     module_args = dict(
+        # DSS group attributes
         name=dict(type="str", required=True),
         description=dict(type="str", required=False, default=None),
         source_type=dict(type="str", required=False, default=None),
@@ -337,6 +346,7 @@ def run_module():
         sso_group_names=dict(type="list", required=False, default=None, elements="str"),
         azure_ad_group_names=dict(type="list", required=False, default=None, elements="str"),
         custom_group_names=dict(type="list", required=False, default=None, elements="str"),
+        # Design, Automation, Deployer group attributes
         may_create_authenticated_connections=dict(type="bool", required=False, default=None),
         may_create_code_envs=dict(type="bool", required=False, default=None),
         may_create_code_studio_templates=dict(type="bool", required=False, default=None),
@@ -360,16 +370,17 @@ def run_module():
         may_publish_to_data_collections=dict(type="bool", required=False, default=None),
         may_share_to_workspaces=dict(type="bool", required=False, default=None),
         may_view_indexed_hive_connections=dict(type="bool", required=False, default=None),
-        may_write_safe_code=dict(type="bool", required=False, default=True),
+        may_write_safe_code=dict(type="bool", required=False, default=None),
         may_write_unsafe_code=dict(type="bool", required=False, default=None),
         may_write_in_root_project_folder=dict(type="bool", required=False, default=None),
         can_obtain_API_ticket_from_cookies_for_groups_regex=dict(type="str", required=False, default=None),
+        # Govern group attributes
+        may_manage_govern=dict(type="bool", required=False, default=None),
     )
     add_dss_connection_args(module_args)
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    add_dataikuapi_to_path(module)
-    from dataikuapi.dss.admin import DSSGroup
+    bootstrap_dataiku_module(module)
     from dataikuapi.utils import DataikuException
 
     args = MakeNamespace(module.params)
@@ -385,8 +396,8 @@ def run_module():
     result = dict(changed=False, message="UNCHANGED", )
 
     try:
-        client = get_client_from_parsed_args(module)
-        group = DSSGroup(client, args.name)
+        client = get_client_from_parsed_args(module, supported_node_types)
+        group = client.get_group(args.name)
         dss_version = client.get_instance_info().raw.get("dssVersion")
         exists = True
         create = False
@@ -418,7 +429,7 @@ def run_module():
         # Transform to camel case
         dict_args = {}
         for key, value in module.params.items():
-            if key not in ["connect_to", "host", "port", "api_key", "state"] + list(group_args_to_settings.keys()) and value is not None:
+            if key not in ["connect_to", "host", "port", "api_key", "node_type", "state"] + list(group_args_to_settings.keys()) and value is not None:
                 camelKey = re.sub(r"_[a-zA-Z]", lambda x: x.group()[1:].upper(), key)
                 dict_args[camelKey] = value
             elif key in group_args_to_settings.keys() and value is not None:

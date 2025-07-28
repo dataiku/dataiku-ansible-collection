@@ -60,8 +60,6 @@ class MakeNamespace(object):
 
 
 def run_module():
-    # define the available arguments/parameters that a user can pass to
-    # the module
     module_args = dict(datadir=dict(type="str", required=True), )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)

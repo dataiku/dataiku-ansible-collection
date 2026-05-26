@@ -30,6 +30,31 @@ telegraf_conf_core_content: |
   {% else %}
     omit_hostname = true
   {% endif %}
+telegraf_conf_dss_monitoring_content: |
+  {% if telegraf_conf_use_legacy_graphite | bool is true %}
+    [[inputs.socket_listener]]
+      service_address = "tcp://127.0.0.1:9109"
+      data_format = "graphite"
+      templates = [
+        "dss.*.server.jvm.threads.*.count                     measurement.dss_id.measurement.measurement.measurement.dimension.field",
+        "dss.*.server.jvm.memory.pools.*.*                    measurement.dss_id.measurement.measurement.measurement.field.pool.dimension",
+        "dss.*.server.jvm.memory.*.*                          measurement.dss_id.measurement.measurement.field.memory.dimension",
+        "dss.*.server.jvm.memory.total.*                      measurement.dss_id.measurement.measurement.measurement.field.dimension",
+        "dss.*.server.dku.jobs.activities.*                   measurement.dss_id.measurement.measurement.measurement.field.activity_state dimension=count",
+        "dss.*.server.dku.jobs.*.*                            measurement.dss_id.measurement.measurement.field.job_state.dimension",
+        "dss.*.server.dku.objectsCounts.global.*              measurement.dss_id.measurement.measurement.measurement.field.kind dimension=count",
+        "dss.*.server.dku.ml.predictionTrain.*.*              measurement.dss_id.measurement.measurement.measurement.field.kind.dimension",
+        "dss.*.server.dku.notifications.queue.*.size.*        measurement.dss_id.measurement.measurement.measurement.measurement.queue.size.dimension",
+        "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
+        "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
+      ]
+    {% else %}
+    [[inputs.prometheus]]
+      urls = ["http://localhost:10000/public/api/metrics-prometheus"]
+      username = "${DSS_API_KEY}"
+      tagexclude = ["url"]
+      namepass = ["jvm_threads_*","jvm_memory_*","dku_jobs_activities_*","dku_jobs_*","dku_objectsCounts_global_*","dku_ml_predictionTrain_*","dku_notifications_queue_*","dku_notifications_publish_*"]
+    {% endif %}
 telegraf_conf_inputs_content: |
   [[inputs.cpu]]
     percpu = true
@@ -62,14 +87,14 @@ telegraf_conf_inputs_content: |
   [[inputs.procstat]]
     interval = "30s"
     pattern = "dataiku-fm-agent"
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dataiku-fm-agent"
   [[inputs.procstat]]
     interval = "30s"
     pattern = "/usr/sbin/nginx.*-c {{ telegraf_conf_dss_datadir }}"
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-nginx"
@@ -80,7 +105,7 @@ telegraf_conf_inputs_content: |
   {% else %}
     pattern = "(/usr/pgsql-17/bin/postgres|/usr/pgsql-10/bin/postmaster) -D /data/pgsql/data"
   {% endif %}
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-runtimedb"
@@ -88,7 +113,7 @@ telegraf_conf_inputs_content: |
   [[inputs.procstat]]
     interval = "30s"
     pattern = "docker-compose.*--file {{ telegraf_conf_dss_installdir }}/story/docker-compose\\.yml"
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-story"
@@ -100,7 +125,7 @@ telegraf_conf_inputs_content: |
   {% else %}
     pattern = "Ddku\\.backend.*-cp {{ telegraf_conf_dss_datadir }}"
   {% endif %}
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-backend"
@@ -108,40 +133,19 @@ telegraf_conf_inputs_content: |
   [[inputs.procstat]]
     interval = "30s"
     pattern = "Ddku\\.fek.*-cp {{ telegraf_conf_dss_datadir }}"
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-fek"
   [[inputs.procstat]]
     interval = "30s"
     pattern = "Ddku\\.jek.*-cp {{ telegraf_conf_dss_datadir }}"
-    tag_with = ["pid"]
+    tag_with = ["pid", "cmdline"]
     [inputs.procstat.tags]
       dss_id = "{{ telegraf_conf_dss_id }}"
       dimension = "dss-jek"
-  {% if telegraf_conf_use_legacy_graphite | bool is true %}
-  [[inputs.socket_listener]]
-    service_address = "tcp://127.0.0.1:9109"
-    data_format = "graphite"
-    templates = [
-      "dss.*.server.jvm.threads.*.count                     measurement.dss_id.measurement.measurement.measurement.dimension.field",
-      "dss.*.server.jvm.memory.pools.*.*                    measurement.dss_id.measurement.measurement.measurement.field.pool.dimension",
-      "dss.*.server.jvm.memory.*.*                          measurement.dss_id.measurement.measurement.field.memory.dimension",
-      "dss.*.server.jvm.memory.total.*                      measurement.dss_id.measurement.measurement.measurement.field.dimension",
-      "dss.*.server.dku.jobs.activities.*                   measurement.dss_id.measurement.measurement.measurement.field.activity_state dimension=count",
-      "dss.*.server.dku.jobs.*.*                            measurement.dss_id.measurement.measurement.field.job_state.dimension",
-      "dss.*.server.dku.objectsCounts.global.*              measurement.dss_id.measurement.measurement.measurement.field.kind dimension=count",
-      "dss.*.server.dku.ml.predictionTrain.*.*              measurement.dss_id.measurement.measurement.measurement.field.kind.dimension",
-      "dss.*.server.dku.notifications.queue.*.size.*        measurement.dss_id.measurement.measurement.measurement.measurement.queue.size.dimension",
-      "dss.*.server.dku.notifications.publish.*.*           measurement.dss_id.measurement.measurement.measurement.field.notification.dimension",
-      "dss.*.server.dku.notifications.publish.*             measurement.dss_id.measurement.measurement.measurement.field.dimension notification=all",
-    ]
-  {% else %}
-  [[inputs.prometheus]]
-    urls = ["http://localhost:10000/public/api/metrics-prometheus"]
-    username = "${DSS_API_KEY}"
   {% endif %}
-  {% endif %}
+  {{ telegraf_conf_dss_monitoring_content }}
 telegraf_conf_outputs_content: |
   [[outputs.prometheus_client]]
 telegraf_conf_additional_content: ""

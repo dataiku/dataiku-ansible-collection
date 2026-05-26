@@ -1,16 +1,23 @@
 ---
+- name: Ensure apt keyring directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
 - name: Add telegraf repository key
   become: true
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
     url: https://repos.influxdata.com/influxdata-archive.key
-    keyring: /etc/apt/trusted.gpg.d/influxdata-archive.gpg
-    state: present
+    dest: /etc/apt/keyrings/influxdata-archive.key
+    mode: "0644"
 
 - name: Add telegraf repository
   become: true
   # force signing key due to https://github.com/influxdata/telegraf/issues/12542
   ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.gpg] https://repos.influxdata.com/{{ ansible_distribution | lower }} stable main"
+    repo: "deb [signed-by=/etc/apt/keyrings/influxdata-archive.key] https://repos.influxdata.com/{{ ansible_distribution | lower }} stable main"
     state: present
     filename: telegraf
   register: repo_telegraf
@@ -33,4 +40,5 @@
   ansible.builtin.apt:
     name: "telegraf={{ telegraf_version }}"
     state: present
+    allow_downgrade: true
   when: telegraf_version != None

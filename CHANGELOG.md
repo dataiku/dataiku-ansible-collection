@@ -1,5 +1,15 @@
 # Changelog
 
+# [v1.5.1] - 2026-05-28
+
+## Added
+## Changed
+
+- Bumped python dependencies `requests` and `jmespath`
+- Updated influxdata gpg key in `install_telegraf` role
+
+## Fixed
+
 # [v1.5.0] - 2025-07-28
 
 ### Added

@@ -64,8 +64,8 @@ Run Unit tests:
     - $DSS_DATADIR/bin/dss start
 
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - sudo apt-get update
-    - sudo apt-get install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-venv"
+    - apt-get update
+    - apt-get install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-venv"
     - "python${PYTHON_VERSION} -m venv \"$VENV_PATH\""
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip
@@ -105,8 +105,8 @@ Run Integration tests:
     - $DSS_DATADIR/bin/dss start
 
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - sudo apt-get update
-    - sudo apt-get install -y python3.11 python3.11-venv
+    - apt-get update
+    - apt-get install -y python3.11 python3.11-venv
     - "python${PYTHON_VERSION} -m venv \"$VENV_PATH\""
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip

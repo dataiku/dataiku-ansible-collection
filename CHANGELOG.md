@@ -1,5 +1,16 @@
 # Changelog
 
+# [v1.5.0] - 2025-07-28
+
+### Added
+
+- Added support for `govern` nodes
+
+### Changed
+### Fixed
+
+- Fixed the dss runtime DB process pattern in telegraf procstat probe
+
 # [v1.4.0] - 2025-07-21
 
 ### Added

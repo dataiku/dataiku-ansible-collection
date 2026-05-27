@@ -19,7 +19,7 @@
   ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/influxdata-archive.key] https://repos.influxdata.com/{{ ansible_distribution | lower }} stable main"
     state: present
-    filename: telegraf
+    filename: influxdata
   register: repo_telegraf
 
 - name: Update cache

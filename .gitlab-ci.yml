@@ -66,7 +66,7 @@ Run Unit tests:
     - export PATH=/home/dataiku/.local/bin:$PATH
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - uv python install "$PYTHON_VERSION"
-    - "$(uv python find \"$PYTHON_VERSION\")" -m venv "$VENV_PATH"
+    - "$(uv python find \"$PYTHON_VERSION\") -m venv \"$VENV_PATH\""
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip
     - pip install -r requirements.txt
@@ -108,7 +108,7 @@ Run Integration tests:
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
     - uv python install "$PYTHON_VERSION"
-    - "$(uv python find \"$PYTHON_VERSION\")" -m venv "$VENV_PATH"
+    - "$(uv python find \"$PYTHON_VERSION\") -m venv \"$VENV_PATH\""
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip
     - pip install -r requirements.txt

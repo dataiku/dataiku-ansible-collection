@@ -64,9 +64,9 @@ Run Unit tests:
     - $DSS_DATADIR/bin/dss start
 
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - dnf update
-    - dnf install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-venv"
-    - "python${PYTHON_VERSION} -m venv \"$VENV_PATH\""
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - uv python install "$PYTHON_VERSION"
+    - "$(uv python find \"$PYTHON_VERSION\")" -m venv "$VENV_PATH"
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip
     - pip install -r requirements.txt
@@ -105,9 +105,10 @@ Run Integration tests:
     - $DSS_DATADIR/bin/dss start
 
     - export PATH=/home/dataiku/.local/bin:$PATH
-    - dnf update
-    - dnf install -y python3.11 python3.11-venv
-    - "python${PYTHON_VERSION} -m venv \"$VENV_PATH\""
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - uv python install "$PYTHON_VERSION"
+    - "$(uv python find \"$PYTHON_VERSION\")" -m venv "$VENV_PATH"
     - . "$VENV_PATH/bin/activate"
     - pip install --upgrade pip
     - pip install -r requirements.txt

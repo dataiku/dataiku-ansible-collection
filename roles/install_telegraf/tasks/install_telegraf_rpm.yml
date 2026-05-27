@@ -1,15 +1,17 @@
 ---
-- name: Add the InfluxData GPG key
+- name: Download InfluxData repository key
   become: true
-  ansible.builtin.shell: |
-    curl --silent --location -O \
-    https://repos.influxdata.com/influxdata-archive_compat.key \
-    && echo "393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c  influxdata-archive_compat.key" \
-    | sha256sum --check - && cat influxdata-archive_compat.key \
-    | gpg --dearmor \
-    | tee /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata > /dev/null
-  args:
-    creates: /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata
+  ansible.builtin.get_url:
+    url: https://repos.influxdata.com/influxdata-archive.key
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata
+    mode: "0644"
+    checksum: "sha256:40557e261cdbdccac91a2dde474cbf101ef672661e64b211b711cc0b904d5dac"
+
+- name: Add InfluxData package signing key
+  become: true
+  ansible.builtin.rpm_key:
+    state: present
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-influxdata
 
 - name: Add telegraf repository
   become: true

@@ -1,5 +1,19 @@
 # Changelog
 
+# [v1.6.0] - 2026-05-28
+
+## Added
+## Changed
+
+- Bumped python dependencies `requests` and `jmespath`
+- Updated influxdata gpg key in `install_telegraf` role
+
+## Deprecations
+
+- Dropped support for Python 3.9 following its end of support.
+
+## Fixed
+
 # [v1.5.0] - 2025-07-28
 
 ### Added

@@ -484,6 +484,7 @@ def run_module():
                     group.delete()
                 elif current != new_def:
                     group.set_definition(new_def)
+                    result["group_def"] = group.get_definition()
                     result["message"] = "MODIFIED"
 
         module.exit_json(**result)

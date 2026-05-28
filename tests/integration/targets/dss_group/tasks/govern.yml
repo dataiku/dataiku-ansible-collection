@@ -80,11 +80,6 @@
     source_type: LDAP
   register: dss_group_delete
 
-- debug:
-    var: dss_group_update
-- debug:
-    var: dss_group_delete
-
 - assert:
     that:
       - dss_group_delete is changed

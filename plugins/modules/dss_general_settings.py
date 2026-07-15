@@ -145,7 +145,8 @@ encrypted_fields = [
     "azureADSettings.credentialsClientSecret", "azureADSettings.credentialsCertificatePassword"
 ]
 smart_update_fields = [
-    "containerSettings.executionConfigs", "sparkSettings.executionConfigs"
+    "containerSettings.executionConfigs", "sparkSettings.executionConfigs",
+    "containerSettings.buildConfigs", "sparkSettings.buildConfigs",
 ]
 smart_update_fields_template = build_template_from_fields(smart_update_fields, default_value=[])
 
@@ -188,12 +189,13 @@ def run_module():
             current_smart_update_fields = extract_keys(general_settings.settings, smart_update_fields_template)
             new_smart_update_fields = extract_keys(args.settings, smart_update_fields_template)
             updated_smart_update_fields = copy.deepcopy(current_smart_update_fields)
-            for key in new_smart_update_fields.keys():
-                if new_smart_update_fields[key]["executionConfigs"]:
-                    updated_smart_update_fields[key]["executionConfigs"] = smart_update_named_lists(
-                        current_smart_update_fields[key]["executionConfigs"],
-                        new_smart_update_fields[key]["executionConfigs"]
-                    ) or []
+            for settings_group, smart_update_lists in new_smart_update_fields.items():
+                for list_name, new_list in smart_update_lists.items():
+                    if new_list:
+                        updated_smart_update_fields[settings_group][list_name] = smart_update_named_lists(
+                            current_smart_update_fields[settings_group][list_name] or [],
+                            new_list
+                        ) or []
             smart_update_fields_changed = current_smart_update_fields != updated_smart_update_fields
         else:
             current_values = current_settings

@@ -145,7 +145,8 @@ encrypted_fields = [
     "azureADSettings.credentialsClientSecret", "azureADSettings.credentialsCertificatePassword"
 ]
 smart_update_fields = [
-    "containerSettings.executionConfigs", "sparkSettings.executionConfigs"
+    "containerSettings.executionConfigs", "sparkSettings.executionConfigs",
+    "containerSettings.buildConfigs", "sparkSettings.buildConfigs",
 ]
 smart_update_fields_template = build_template_from_fields(smart_update_fields, default_value=[])
 
